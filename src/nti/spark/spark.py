@@ -109,7 +109,7 @@ class HiveSparkInstance(SparkInstance):
     def __init__(self, master, app_name,
                  location=DEFAULT_LOCATION, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
-        self.location = location or DEFAULT_LOCATION
+        self.location = DEFAULT_LOCATION if location is None else location
 
     @Lazy
     def conf(self):
@@ -210,7 +210,8 @@ class HiveSparkInstance(SparkInstance):
         # Always store as parquet file
         create_query += " STORED AS PARQUET"
         if external:
-            create_query += " LOCATION '%s/%s/'" % (self.location, name)
+            location = name if not self.location else "%s/%s" % (self.location, name)
+            create_query += " LOCATION '%s'" % location
         # pylint: disable=no-member
         self.hive.sql(create_query)
 
