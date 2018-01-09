@@ -9,6 +9,7 @@ entry_points = {
 
 TESTS_REQUIRE = [
     'fudge',
+    'nti.schema',
     'nti.testing',
     'zope.dottedname',
     'zope.testrunner',
@@ -56,6 +57,7 @@ setup(
         'setuptools',
         'pyspark',
         'zope.component',
+        'zope.configuration',
         'zope.interface',
         'zope.schema',
         'zope.security',
@@ -64,6 +66,7 @@ setup(
         'test': TESTS_REQUIRE,
         'docs': [
             'Sphinx',
+            'nti.schema',
             'repoze.sphinx.autointerface',
             'sphinx_rtd_theme',
         ],
