@@ -5,6 +5,10 @@
 		<meta:directive	name="registerSparkInstance"
 						schema=".zcml.IRegisterSparkInstance"
 						handler=".zcml.registerSparkInstance" />
+						
+		<meta:directive	name="registerHiveSparkInstance"
+						schema=".zcml.IRegisterHiveSparkInstance"
+						handler=".zcml.registerHiveSparkInstance" />
 	</meta:directives>
 
 </configure>

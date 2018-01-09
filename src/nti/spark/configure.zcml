@@ -11,10 +11,4 @@
 
 	<include package="." file="configure_spark.zcml" />
 
-	<!-- Directives -->
-	<include package="." file="meta.zcml" />
-	<configure zcml:condition="have testmode">
-		<spark:registerSparkInstance/>
-	</configure>
-
 </configure>
