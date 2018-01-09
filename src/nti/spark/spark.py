@@ -195,46 +195,61 @@ class HiveSparkInstance(SparkInstance):
         self.hive.sql(create_query)
 
     def select_from(self, table, columns=None):
-        if columns is None:
-            # If all, use *
-            select_param = "*"
-        else:
-            select_param = ""
-            for c in columns:
-                select_param += "%s," % (c)
-            select_param = select_param[:-1]
+        """
+        Return a dataframe with the table data
+        
+        :param name: Table name
+        :param columns: (optional) Iterable of column names
+
+        :type name: str
+        :type columns: Iterable
+        """
+        select_param = []
+        for c in columns or ():
+            select_param.append("%s" % c)
+        select_param = ', '.join(select_param) or '*'
         # pylint: disable=no-member
         return self.hive.sql("SELECT (%s) FROM %s" % (select_param, table))
 
     def insert_into(self, table, source, overwrite=False):
+        """
+        Insert into a hive table
+        
+        :param name: Table name
+        :param source: Soruce dataframe
+        :param overwrite: Overwrite data flag
+
+        :type name: str
+        :type source: dict
+        :type overwrite: bool
+        """
         # If the source frame is empty, don't do anything
         # because there is nothing to enter
-        if source.count() < 1:
-            return
-        # Get any partitioned columns
-        partition_col = self.is_partitioned(table)
-        partition_str = ""
-        if partition_col:
-            # Select the partition column
-            partition_val = source.select(partition_col).collect()[0]
-            partition_str += "("
-            # Convert to partition insert string
-            for partition in partition_col:
-                partition_str += "%s=%s," % (partition,
-                                             getattr(partition_val, partition))
-            partition_str = partition_str[:-1] + ")"
-        # Inidicate overwrite
-        if not overwrite:
-            insert_param = "INSERT INTO %s " % (table)
-        else:
-            insert_param = "INSERT OVERWRITE TABLE %s " % (table)
-        # Add in partition if necessary
-        if partition_str:
-            insert_param += "PARTITION %s " % (partition_str)
-            source = source.drop(*partition_col)
-        # Convert the source dataframe into
-        # a query string
-        source_str = _dataframe_as_str(source)
-        insert_param += "VALUES %s" % (source_str)
-        # pylint: disable=no-member
-        self.hive.sql(insert_param)
+        if source.count():
+            partition_str = ""
+            # Get any partitioned columns
+            partition_col = self.is_partitioned(table)
+            if partition_col:
+                partition_str += "("
+                # Select the partition column
+                partition_val = source.select(partition_col).collect()[0]
+                # Convert to partition insert string
+                for partition in partition_col:
+                    value = getattr(partition_val, partition)
+                    partition_str += "%s=%s," % (partition, value)
+                partition_str = partition_str[:-1] + ")"
+            # Inidicate overwrite
+            if not overwrite:
+                insert_param = "INSERT INTO %s " % (table)
+            else:
+                insert_param = "INSERT OVERWRITE TABLE %s " % (table)
+            # Add in partition if necessary
+            if partition_str:
+                insert_param += "PARTITION %s " % (partition_str)
+                source = source.drop(*partition_col)
+            # Convert the source dataframe into
+            # a query string
+            source_str = _dataframe_as_str(source)
+            insert_param += "VALUES %s" % (source_str)
+            # pylint: disable=no-member
+            self.hive.sql(insert_param)
