@@ -56,6 +56,7 @@ setup(
     install_requires=[
         'setuptools',
         'pyspark',
+        'six',
         'zope.cachedescriptors',
         'zope.component',
         'zope.configuration',
