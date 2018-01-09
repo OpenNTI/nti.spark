@@ -55,7 +55,7 @@ def _dataframe_as_str(data_frame):
     for r in rows:
         item = "("
         for v in r:
-            if type(v) == unicode:
+            if isinstance(v, six.string_types):
                 # Quote string types
                 item += "'%s'," % (v)
             else:
