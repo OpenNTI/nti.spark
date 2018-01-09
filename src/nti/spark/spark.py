@@ -12,6 +12,8 @@ import six
 
 from pyspark import SparkContext
 
+from pyspark.conf import SparkConf
+
 from pyspark.sql import HiveContext
 from pyspark.sql import SparkSession
 
@@ -70,13 +72,23 @@ class SparkInstance(SchemaConfigured):
     createDirectFieldProperties(ISparkInstance)
 
     # pylint: disable=super-init-not-called
-    def __init__(self, master=None, appName=None, log_level=DEFAULT_LOG_LEVEL):
-        self._spark = SparkContext(master=master, appName=appName)
-        self._spark.setLogLevel(DEFAULT_LOG_LEVEL if not log_level else log_level)
+    def __init__(self, master, app_name, log_level=DEFAULT_LOG_LEVEL):
+        self.master = master
+        self.app_name = app_name
+        self.log_level = DEFAULT_LOG_LEVEL if not log_level else log_level
 
-    @property
+    @Lazy
+    def conf(self):
+        conf = SparkConf()
+        conf.setMaster(self.master)
+        conf.setAppName(self.app_name)
+        return conf
+
+    @Lazy
     def spark(self):
-        return self._spark
+        result = SparkContext.getOrCreate(self.conf)
+        result.setLogLevel(self.log_level)  # pylint: disable=no-member
+        return result
     context = spark
 
     @Lazy
@@ -84,20 +96,35 @@ class SparkInstance(SchemaConfigured):
         return SparkSession(self.spark)
 
     def close(self):
+        # pylint: disable=no-member
         if 'session' in self.__dict__:
-            # pylint: disable=no-member
             self.session.stop()
-        self._spark.stop()
+        if 'spark' in self.__dict__:
+            self.spark.stop()
+
+    # context manager for testing
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *unused_args, **unused_kwargs):
+        self.close()
 
 
 @interface.implementer(IHiveSparkInstance)
 class HiveSparkInstance(SparkInstance):
 
-    def __init__(self, master=None, appName=None, 
+    def __init__(self, master, app_name, 
                  location=DEFAULT_LOCATION, log_level=DEFAULT_LOG_LEVEL):
-        SparkInstance.__init__(self, master, appName, log_level)
+        SparkInstance.__init__(self, master, app_name, log_level)
         self.location = location or DEFAULT_LOCATION
         
+    @Lazy
+    def conf(self):
+        result = super(HiveSparkInstance, self).conf
+        # pylint: disable=no-member
+        result.set("spark.sql.catalogImplementation", "hive")
+        return result
+
     @Lazy
     def hive(self):
         return HiveContext(self.spark)
