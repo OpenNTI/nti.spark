@@ -102,22 +102,15 @@ class SparkInstance(SchemaConfigured):
         if 'spark' in self.__dict__:
             self.spark.stop()
 
-    # context manager for testing
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *unused_args, **unused_kwargs):
-        self.close()
-
 
 @interface.implementer(IHiveSparkInstance)
 class HiveSparkInstance(SparkInstance):
 
-    def __init__(self, master, app_name, 
+    def __init__(self, master, app_name,
                  location=DEFAULT_LOCATION, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
         self.location = location or DEFAULT_LOCATION
-        
+
     @Lazy
     def conf(self):
         result = super(HiveSparkInstance, self).conf
@@ -155,7 +148,7 @@ class HiveSparkInstance(SparkInstance):
     def create_table_like(self, name, like):
         """
         Create a simple hive table like
-        
+
         :param name: Table name
         :param like: Source table name 
 
@@ -164,14 +157,14 @@ class HiveSparkInstance(SparkInstance):
         """
         # Use LIKE keyword if we are
         # not trying to do anything additional
-        create_query = "CREATE TABLE IF NOT EXISTS %s LIKE %s"  % (name, like)
+        create_query = "CREATE TABLE IF NOT EXISTS %s LIKE %s" % (name, like)
         # pylint: disable=no-member
         self.hive.sql(create_query)
 
     def create_table(self, name, columns=None, partition_by=None, like=None, external=False):
         """
         Create a hive table
-        
+
         :param name: Table name
         :param columns: (optional) Table columns (vs type) definition
         :param partition_by: (optional) Dictionary of columns vs types to partition a table
@@ -201,9 +194,9 @@ class HiveSparkInstance(SparkInstance):
             # Convert column collections to query strings
             partition_cols_str = _columns_as_str(partition_cols)
             reg_cols_str = _columns_as_str({
-                    x: like_schema[x] for x in like_schema.keys() 
-                    if x not in partition_cols.keys() and x != PARTITION_KEY
-                })
+                x: like_schema[x] for x in like_schema.keys()
+                if x not in partition_cols.keys() and x != PARTITION_KEY
+            })
             create_query += " (%s)" % (reg_cols_str)
             if partition_by or partition_cols:
                 create_query += " PARTITIONED BY (%s)" % (partition_cols_str)
@@ -224,7 +217,7 @@ class HiveSparkInstance(SparkInstance):
     def select_from(self, table, columns=None):
         """
         Return a dataframe with the table data
-        
+
         :param name: Table name
         :param columns: (optional) Iterable of column names
 
@@ -241,7 +234,7 @@ class HiveSparkInstance(SparkInstance):
     def insert_into(self, table, source, overwrite=False):
         """
         Insert into a hive table
-        
+
         :param name: Table name
         :param source: Soruce dataframe
         :param overwrite: Overwrite data flag
