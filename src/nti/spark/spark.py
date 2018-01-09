@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import six
+
 from pyspark import SparkContext
 
 from pyspark.sql import HiveContext
@@ -102,9 +104,9 @@ class HiveSparkInstance(SparkInstance):
 
     def get_table_schema(self, table):
         # pylint: disable=no-member
+        schema = {PARTITION_KEY: []}
         df = self.hive.sql("DESCRIBE %s" % (table))
         coll = df.select(df.col_name, df.data_type).collect()
-        schema = {PARTITION_KEY: []}
         has_seen_partition = False
         for row in coll:
             # Iterating in order, note when we've seen
@@ -123,16 +125,42 @@ class HiveSparkInstance(SparkInstance):
         schema = self.get_table_schema(table)
         return schema[PARTITION_KEY] if schema[PARTITION_KEY] else False
 
-    def create_table(self, name, partition_by=None, columns=None, like=None, external=False):
+    def create_table_like(self, name, like):
+        """
+        Create a simple hive table like
+        
+        :param name: Table name
+        :param like: Source table name 
+
+        :type name: str
+        :type like: str
+        """
+        # Use LIKE keyword if we are
+        # not trying to do anything additional
+        create_query = "CREATE TABLE IF NOT EXISTS %s LIKE %s"  % (name, like)
+        # pylint: disable=no-member
+        self.hive.sql(create_query)
+
+    def create_table(self, name, columns=None, partition_by=None, like=None, external=False):
+        """
+        Create a hive table
+        
+        :param name: Table name
+        :param columns: (optional) Table columns (vs type) definition
+        :param partition_by: (optional) Dictionary of columns vs types to partition a table
+        :param like: (optional) Source table name 
+        :param external: Create a external table
+
+        :type name: str
+        :type columns: dict
+        :type partition_by: dict
+        :type like: str
+        :type external: bool
+        """
         external_str = "" if not external else " EXTERNAL "
         create_query = "CREATE %s TABLE IF NOT EXISTS %s" % (external_str, name)
         if like and not partition_by and not external:
-            # Use LIKE keyword if we are
-            # not trying to do anything additional
-            create_query += " LIKE %s" % (like)
-            # pylint: disable=no-member
-            self.hive.sql(create_query)
-            return
+            return self.create_table_like(name, like)
         elif like and (partition_by or external):
             like_schema = self.get_table_schema(like)
             # Get all copied partition values
@@ -153,8 +181,8 @@ class HiveSparkInstance(SparkInstance):
             if partition_by or partition_cols:
                 create_query += " PARTITIONED BY (%s)" % (partition_cols_str)
         else:
-            if partition_by in columns.keys():
-                raise ValueError("Partition column duplicate in columns list")
+            if partition_by and set(partition_by.keys()).intersection(set(columns.keys())):
+                raise ValueError("Partition column duplicated in columns list")
             column_str = _columns_as_str(columns)
             create_query += " (%s)" % (column_str)
             if partition_by:
