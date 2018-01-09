@@ -8,5 +8,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-PARTITION_KEY = "partition"
-PARITION_INFORMATION = "# Partition Information"
+DEFAULT_LOG_LEVEL = u'ALL'
+
+DEFAULT_LOCATION = u'/user/hive/warehouse'
+
+PARTITION_KEY = u"partition"
+PARITION_INFORMATION = u"# Partition Information"

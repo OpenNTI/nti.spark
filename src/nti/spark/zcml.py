@@ -18,11 +18,31 @@ from zope.component.zcml import utility
 
 from zope.configuration import fields
 
+from zope.schema import Choice
+
+from zope.schema.vocabulary import SimpleTerm
+from zope.schema.vocabulary import SimpleVocabulary
+
+from nti.spark import DEFAULT_LOCATION
+
 from nti.spark.interfaces import ISparkInstance
 from nti.spark.interfaces import IHiveSparkInstance
 
 from nti.spark.spark import SparkInstance
 from nti.spark.spark import HiveSparkInstance
+
+ALL_LEVEL = u'ALL'
+INFO_LEVEL = u'INFO'
+WARN_LEVEL = u'WARN'
+DEBUG_LEVEL = u'DEBUG'
+ERROR_LEVEL = u'ERROR'
+FATAL_LEVEL = u'FATAL'
+
+LOG_LEVELS = (ALL_LEVEL, INFO_LEVEL, WARN_LEVEL, DEBUG_LEVEL,
+              ERROR_LEVEL, FATAL_LEVEL)
+LOG_LEVELS_VOCABULARY = \
+    SimpleVocabulary([SimpleTerm(_x) for _x in LOG_LEVELS])
+
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -39,6 +59,11 @@ class IRegisterSparkInstance(interface.Interface):
                                required=False,
                                default=u"Spark App")
 
+    love_level = Choice(vocabulary=LOG_LEVELS_VOCABULARY,
+                        title=u'Logging Level',
+                        required=False,
+                        default=FATAL_LEVEL)
+
 
 class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     """
@@ -46,11 +71,11 @@ class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     """
     location = fields.TextLine(title=u"Hive data location",
                                required=False,
-                               default=u"/user/hive/warehouse")
+                               default=DEFAULT_LOCATION)
 
 
 def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
-                          log_level=u"FATAL"):
+                          log_level=FATAL_LEVEL):
     factory = functools.partial(SparkInstance,
                                 master=master,
                                 appName=app_name,
@@ -59,11 +84,12 @@ def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
     utility(_context, provides=ISparkInstance, factory=factory)
 
 
-def registerHiveSparkInstance(_context, master=u"local", app_name=u"Spark App",
-                              log_level=u"FATAL"):
+def registerHiveSparkInstance(_context, master=u"local", app_name=u"Hive Spark App",
+                              location=DEFAULT_LOCATION, log_level=FATAL_LEVEL):
     factory = functools.partial(HiveSparkInstance,
                                 master=master,
                                 appName=app_name,
+                                location=location,
                                 log_level=log_level)
 
     utility(_context, provides=IHiveSparkInstance, factory=factory)

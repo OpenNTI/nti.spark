@@ -22,6 +22,8 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 from nti.schema.schema import SchemaConfigured
 
 from nti.spark import PARTITION_KEY
+from nti.spark import DEFAULT_LOCATION
+from nti.spark import DEFAULT_LOG_LEVEL
 from nti.spark import PARITION_INFORMATION
 
 from nti.spark.interfaces import ISparkInstance
@@ -66,9 +68,9 @@ class SparkInstance(SchemaConfigured):
     createDirectFieldProperties(ISparkInstance)
 
     # pylint: disable=super-init-not-called
-    def __init__(self, master=None, appName=None, log_level=None):
+    def __init__(self, master=None, appName=None, log_level=DEFAULT_LOG_LEVEL):
         self._spark = SparkContext(master=master, appName=appName)
-        self._spark.setLogLevel("ALL" if not log_level else log_level)
+        self._spark.setLogLevel(DEFAULT_LOG_LEVEL if not log_level else log_level)
 
     @property
     def spark(self):
@@ -89,6 +91,11 @@ class SparkInstance(SchemaConfigured):
 @interface.implementer(IHiveSparkInstance)
 class HiveSparkInstance(SparkInstance):
 
+    def __init__(self, master=None, appName=None, 
+                 location=DEFAULT_LOCATION, log_level=DEFAULT_LOG_LEVEL):
+        SparkInstance.__init__(self, master, appName, log_level)
+        self.location = location or DEFAULT_LOCATION
+        
     @Lazy
     def hive(self):
         return HiveContext(self.spark)
@@ -155,7 +162,7 @@ class HiveSparkInstance(SparkInstance):
         # Always store as parquet file
         create_query += " STORED AS PARQUET"
         if external:
-            create_query += " LOCATION '/user/hive/warehouse/orgsync/%s/'" % (name)
+            create_query += " LOCATION '%s/%s/'" % (self.location, name)
         # pylint: disable=no-member
         self.hive.sql(create_query)
 
