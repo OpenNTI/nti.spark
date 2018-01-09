@@ -1,0 +1,10 @@
+<configure	xmlns="http://namespaces.zope.org/zope"
+			xmlns:meta="http://namespaces.zope.org/meta">
+
+	<meta:directives namespace="http://nextthought.com/ntp/spark">
+		<meta:directive	name="registerSparkInstance"
+						schema=".zcml.IRegisterSparkInstance"
+						handler=".zcml.registerSparkInstance" />
+	</meta:directives>
+
+</configure>
