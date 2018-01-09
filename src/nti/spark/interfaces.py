@@ -44,13 +44,21 @@ class ISparkSession(interface.Interface):
     """
 
 
+class IHiveContext(interface.Interface):
+    """
+    A Spark Session linked to an instance
+    of a Spark Context for converting
+    RDDs to DataFrames
+    """
+
+
 class ISparkInstance(interface.Interface):
     """
     An object encapsulating both a Spark Context
     and its attached Spark Session.
     """
-    context = Object(ISparkContext,
-                     title=u"Spark Context")
+    spark = Object(ISparkContext,
+                   title=u"Spark Context")
 
     session = Object(ISparkSession,
                      title=u"Spark Session")
@@ -58,4 +66,41 @@ class ISparkInstance(interface.Interface):
     def close():
         """
         Close both the session and context for this instance.
+        """
+
+
+class IHiveSparkInstance(ISparkInstance):
+    """
+    An object encapsulating both a Hive Context
+    """
+    hive = Object(IHiveContext,
+                  title=u"Hive Context")
+
+    def get_table_schema(table):
+        """
+        Get a table's schema as a dictionary
+        of fields and their data types, along
+        with an entry noting the partitioned values
+        """
+
+    def is_partitioned(table):
+        """
+        Return if a table has any partitioned attributes.
+        If there is, return the list of those attributes
+        """
+
+    def create_table(name, partition_by=None, columns=None, like=None, external=False):
+        """
+        Create a Hive Table
+        """
+
+    def select_from(table, columns=None):
+        """
+        Select values from a table
+        """
+
+    def insert_into(table, source, overwrite=False):
+        """
+        Insert values from a source into the table.
+        Indicate overwrite existing tables if necessary
         """

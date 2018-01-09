@@ -7,3 +7,6 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+
+PARTITION_KEY = "partition"
+PARITION_INFORMATION = "# Partition Information"
