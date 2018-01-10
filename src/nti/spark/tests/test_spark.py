@@ -51,7 +51,6 @@ class TestSpark(SparkLayerTest):
         return result
 
     def test_hive(self):
-        # from IPython.terminal.debugger import set_trace;set_trace()
         try:
             spark = self.spark()
             # 1. Verify and validate
@@ -66,8 +65,11 @@ class TestSpark(SparkLayerTest):
             # hive
             assert_that(spark.hive, validly_provides(IHiveContext))
             assert_that(spark.hive, verifiably_provides(IHiveContext))
+            
+            # 2. create a database
+            spark.create_database("orgsync", "home")
 
-            # 2. create initial table
+            # 3. create initial table
             spark.create_table("categories",
                                columns={"id": "INT",
                                         "name": "STRING"})
@@ -78,7 +80,7 @@ class TestSpark(SparkLayerTest):
                                                               partition_by={"name": "STRING"}),
                         raises(ValueError))
 
-            # 3. Insert data
+            # 4. Insert data
             # pylint: disable=no-member
             cols = [{'name': 'students', 'id': 1}]
             source = spark.hive.createDataFrame(cols, schema=category_schema)
@@ -87,14 +89,14 @@ class TestSpark(SparkLayerTest):
             # test overwrite
             spark.insert_into("categories", source, True)
 
-            # 3. select from table
+            # 5. select from table
             df = spark.select_from("categories", ('name',))
             assert_that(df.count(), is_(1))
 
-            # 4. create a simple like table
+            # 6. create a simple like table
             spark.create_table("groups", like="categories")
 
-            # 5. create table with partition
+            # 7. create table with partition
             spark.create_table("assets",
                                columns={"id": "INT",
                                         "name": "STRING"},
@@ -103,7 +105,7 @@ class TestSpark(SparkLayerTest):
             source = spark.hive.createDataFrame(cols)
             spark.insert_into("assets", source, False)
 
-            # 6. create table with partition
+            # 8. create table with partition
             spark.create_table("historical_categories",
                                like="categories",
                                partition_by={"tstamp": "double"},
