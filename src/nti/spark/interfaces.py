@@ -76,6 +76,17 @@ class IHiveSparkInstance(ISparkInstance):
     hive = Object(IHiveContext,
                   title=u"Hive Context")
 
+    def create_database(name, location=None):
+        """
+        Create a Hive Database
+
+        :param name: Database name
+        :param location: (Optional) HDFS path
+
+        :type name: str
+        :type location: str
+        """
+
     def get_table_schema(table):
         """
         Get a table's schema as a dictionary
@@ -91,16 +102,41 @@ class IHiveSparkInstance(ISparkInstance):
 
     def create_table(name, partition_by=None, columns=None, like=None, external=False):
         """
-        Create a Hive Table
+        Create a hive table
+
+        :param name: Table name
+        :param columns: (optional) Table columns (vs type) definition
+        :param partition_by: (optional) Dictionary of columns vs types to partition a table
+        :param like: (optional) Source table name 
+        :param external: Create a external table
+
+        :type name: str
+        :type columns: dict
+        :type partition_by: dict
+        :type like: str
+        :type external: bool
         """
 
     def select_from(table, columns=None):
         """
-        Select values from a table
+        Return a dataframe with the table data
+
+        :param name: Table name
+        :param columns: (optional) Iterable of column names
+
+        :type name: str
+        :type columns: Iterable
         """
 
     def insert_into(table, source, overwrite=False):
         """
-        Insert values from a source into the table.
-        Indicate overwrite existing tables if necessary
+        Insert into a hive table
+
+        :param name: Table name
+        :param source: Soruce dataframe
+        :param overwrite: Overwrite data flag
+
+        :type name: str
+        :type source: dict
+        :type overwrite: bool
         """

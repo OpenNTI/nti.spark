@@ -145,6 +145,12 @@ class HiveSparkInstance(SparkInstance):
         schema = self.get_table_schema(table)
         return schema[PARTITION_KEY] if schema[PARTITION_KEY] else False
 
+    def create_database(self, name, location=None):
+        create_query = "CREATE DATABASE IF NOT EXISTS %s" % name
+        create_query += " LOCATION '%s'" % location if location else ""
+        # pylint: disable=no-member
+        self.hive.sql(create_query)
+
     def create_table_like(self, name, like):
         """
         Create a simple hive table like
@@ -162,21 +168,6 @@ class HiveSparkInstance(SparkInstance):
         self.hive.sql(create_query)
 
     def create_table(self, name, columns=None, partition_by=None, like=None, external=False):
-        """
-        Create a hive table
-
-        :param name: Table name
-        :param columns: (optional) Table columns (vs type) definition
-        :param partition_by: (optional) Dictionary of columns vs types to partition a table
-        :param like: (optional) Source table name 
-        :param external: Create a external table
-
-        :type name: str
-        :type columns: dict
-        :type partition_by: dict
-        :type like: str
-        :type external: bool
-        """
         if not external:
             create_query = "CREATE TABLE IF NOT EXISTS %s" % name
         else:
@@ -227,15 +218,6 @@ class HiveSparkInstance(SparkInstance):
         self.hive.sql(create_query)
 
     def select_from(self, table, columns=None):
-        """
-        Return a dataframe with the table data
-
-        :param name: Table name
-        :param columns: (optional) Iterable of column names
-
-        :type name: str
-        :type columns: Iterable
-        """
         select_param = []
         for c in columns or ():
             select_param.append("%s" % c)
@@ -244,17 +226,6 @@ class HiveSparkInstance(SparkInstance):
         return self.hive.sql("SELECT (%s) FROM %s" % (select_param, table))
 
     def insert_into(self, table, source, overwrite=False):
-        """
-        Insert into a hive table
-
-        :param name: Table name
-        :param source: Soruce dataframe
-        :param overwrite: Overwrite data flag
-
-        :type name: str
-        :type source: dict
-        :type overwrite: bool
-        """
         # If the source frame is empty, don't do anything
         # because there is nothing to enter
         if source.count():
