@@ -41,10 +41,10 @@ def _columns_as_str(column_dict):
     Convert dictionary of name, type
     pairs to hive-compatible string
     """
-    result_str = ""
-    for key, value in column_dict.iteritems():
-        result_str += "%s %s," % (key, value)
-    return result_str[:-1]
+    result = []
+    for key, value in column_dict.items():
+        result.append("%s %s" % (key, value))
+    return ', '.join(result)
 
 
 def _dataframe_as_str(data_frame):
@@ -177,10 +177,15 @@ class HiveSparkInstance(SparkInstance):
         :type like: str
         :type external: bool
         """
-        external_str = "" if not external else " EXTERNAL "
-        create_query = "CREATE %s TABLE IF NOT EXISTS %s" % (external_str, name)
+        if not external:
+            create_query = "CREATE TABLE IF NOT EXISTS %s" % name
+        else:
+            create_query = "CREATE EXTERNAL TABLE IF NOT EXISTS %s" % name
+        # analyze params
+        # simple like table
         if like and not partition_by and not external:
             return self.create_table_like(name, like)
+        # like table w/ partition or external
         elif like and (partition_by or external):
             like_schema = self.get_table_schema(like)
             # Get all copied partition values
@@ -200,18 +205,24 @@ class HiveSparkInstance(SparkInstance):
             create_query += " (%s)" % (reg_cols_str)
             if partition_by or partition_cols:
                 create_query += " PARTITIONED BY (%s)" % (partition_cols_str)
+        # creating a regular table
         else:
+            # check columns
+            assert columns, "Must specify columns"
+            # valdiate partition columns
             if partition_by and set(partition_by.keys()).intersection(set(columns.keys())):
-                raise ValueError("Partition column duplicated in columns list")
-            column_str = _columns_as_str(columns)
-            create_query += " (%s)" % (column_str)
+                raise ValueError("Found duplicate column(s) in table definition")
+            # add column to query
+            create_query += " (%s)" % _columns_as_str(columns)
             if partition_by:
-                create_query += " PARTITIONED BY %s" % _columns_as_str(partition_by)
-        # Always store as parquet file
+                create_query += " PARTITIONED BY (%s)" % _columns_as_str(partition_by)
+        # always store as parquet file
         create_query += " STORED AS PARQUET"
         if external:
             location = name if not self.location else "%s/%s" % (self.location, name)
             create_query += " LOCATION '%s'" % location
+        # pylint: disable=unused-variable
+        __traceback_info__ = create_query
         # pylint: disable=no-member
         self.hive.sql(create_query)
 
