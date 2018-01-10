@@ -47,7 +47,7 @@ class TestSpark(SparkLayerTest):
         result = HiveSparkInstance(master=u"local",
                                    app_name=u"HiveApp",
                                    log_level=u"FATAL",
-                                   location="")
+                                   location="spark-warehouse")
         return result
 
     def test_hive(self):
