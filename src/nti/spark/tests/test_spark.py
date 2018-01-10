@@ -16,9 +16,12 @@ from hamcrest import has_entries
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
 
+from collections import OrderedDict
+
 from zope import interface
 
 from zope.schema import Int
+from zope.schema import List
 from zope.schema import TextLine
 
 from nti.spark.interfaces import IHiveContext
@@ -38,6 +41,16 @@ class ICategory(interface.Interface):
     name = TextLine(title=u"The name")
 
 
+class IGroup(interface.Interface):
+    id = Int(title=u"The id")
+    name = TextLine(title=u"The name")
+    accounts = List(title=u"The id(s) of the accounts in the group",
+                    min_length=0,
+                    required=False,
+                    value_type=Int(title=u"The id"))
+
+
+groups_schema = to_pyspark_schema(IGroup)
 category_schema = to_pyspark_schema(ICategory)
 
 
@@ -65,7 +78,7 @@ class TestSpark(SparkLayerTest):
             # hive
             assert_that(spark.hive, validly_provides(IHiveContext))
             assert_that(spark.hive, verifiably_provides(IHiveContext))
-            
+
             # 2. create a database
             spark.create_database("orgsync", "home")
 
@@ -94,7 +107,7 @@ class TestSpark(SparkLayerTest):
             assert_that(df.count(), is_(1))
 
             # 6. create a simple like table
-            spark.create_table("groups", like="categories")
+            spark.create_table("categories_like", like="categories")
 
             # 7. create table with partition
             spark.create_table("assets",
@@ -115,5 +128,16 @@ class TestSpark(SparkLayerTest):
             assert_that(data,
                         has_entries('partition', is_(['tstamp']),
                                     'tstamp', 'double'))
+
+            # 9. create groups table
+            columns = OrderedDict()
+            columns['id'] = 'INT'
+            columns['name'] = 'STRING'
+            columns['accounts'] = 'ARRAY<INT>'
+            spark.create_table("groups", columns=columns)
+            # insert array
+            cols = [{'id': 1, 'name': 'admin', "accounts": [717]}]
+            source = spark.hive.createDataFrame(cols, schema=groups_schema)
+            spark.insert_into("groups", source, True)
         finally:
             spark.close()

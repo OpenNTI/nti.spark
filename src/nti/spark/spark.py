@@ -47,24 +47,29 @@ def _columns_as_str(column_dict):
     return ', '.join(result)
 
 
+def _quote(v):
+    if isinstance(v, six.string_types):
+        return "'%s'" % v
+    return "%s" % v
+
+
 def _dataframe_as_str(data_frame):
     """
     Convert a data frame to a
     hive-compatible string
     """
-    rows = data_frame.collect()
-    result = ""
-    for r in rows:
-        item = "("
-        for v in r:
-            if isinstance(v, six.string_types):
-                # Quote string types
-                item += "'%s'," % (v)
+    result = []
+    for row in data_frame.toLocalIterator():
+        items = []
+        for v in row:
+            if isinstance(v, (list, tuple, set)):
+                values = (_quote(x) for x in v)
+                items.append("array(%s)" % ','.join(values))
             else:
-                item += "%s," % (v)
-        item = item[:-1] + ")"
-        result += item + ","
-    return result[:-1]
+                items.append(_quote(v))
+        result.append("(%s)" % ','.join(items))
+    result = ','.join(result)
+    return result
 
 
 @interface.implementer(ISparkInstance)
@@ -215,7 +220,8 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=unused-variable
         __traceback_info__ = create_query
         # pylint: disable=no-member
-        self.hive.sql(create_query)
+        result = self.hive.sql(create_query)
+        return result
 
     def select_from(self, table, columns=None):
         select_param = []
