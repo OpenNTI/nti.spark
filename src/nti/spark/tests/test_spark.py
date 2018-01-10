@@ -11,6 +11,7 @@ from hamcrest import is_
 from hamcrest import raises
 from hamcrest import calling
 from hamcrest import assert_that
+from hamcrest import has_entries
 
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
@@ -35,18 +36,20 @@ from nti.spark.tests import SparkLayerTest
 class ICategory(interface.Interface):
     id = Int(title=u"The id")
     name = TextLine(title=u"The name")
+
+
 category_schema = to_pyspark_schema(ICategory)
 
 
 class TestSpark(SparkLayerTest):
 
     def spark(self):
-        result = HiveSparkInstance(master=u"local", 
-                                   app_name=u"HiveApp", 
+        result = HiveSparkInstance(master=u"local",
+                                   app_name=u"HiveApp",
                                    log_level=u"FATAL",
                                    location="")
         return result
-    
+
     def test_hive(self):
         # from IPython.terminal.debugger import set_trace;set_trace()
         try:
@@ -63,7 +66,7 @@ class TestSpark(SparkLayerTest):
             # hive
             assert_that(spark.hive, validly_provides(IHiveContext))
             assert_that(spark.hive, verifiably_provides(IHiveContext))
-            
+
             # 2. create initial table
             spark.create_table("categories",
                                columns={"id": "INT",
@@ -72,34 +75,43 @@ class TestSpark(SparkLayerTest):
             assert_that(calling(spark.create_table).with_args("categories",
                                                               columns={"id": "INT",
                                                                        "name": "STRING"},
-                                                              partition_by={"name":"string"}),
+                                                              partition_by={"name": "STRING"}),
                         raises(ValueError))
 
-            spark.create_table("categories",
-                               columns={"id": "INT",
-                                        "name": "STRING"})
-                                
-            cols = [{'name': 'students', 'id': 1}]
-            
             # 3. Insert data
             # pylint: disable=no-member
+            cols = [{'name': 'students', 'id': 1}]
             source = spark.hive.createDataFrame(cols, schema=category_schema)
             # insert into empty table
             spark.insert_into("categories", source, False)
             # test overwrite
             spark.insert_into("categories", source, True)
-            
+
             # 3. select from table
             df = spark.select_from("categories", ('name',))
             assert_that(df.count(), is_(1))
-            
+
             # 4. create a simple like table
             spark.create_table("groups", like="categories")
-            
+
             # 5. create table with partition
-            spark.create_table("historical_categories", 
-                               like="categories", 
-                               partition_by={"tstamp":"double"}, 
+            spark.create_table("assets",
+                               columns={"id": "INT",
+                                        "name": "STRING"},
+                               partition_by={"timestamp": "double"})
+            cols = [{'name': 'students', 'id': 1, 'timestamp': 100.0}]
+            source = spark.hive.createDataFrame(cols)
+            spark.insert_into("assets", source, False)
+
+            # 6. create table with partition
+            spark.create_table("historical_categories",
+                               like="categories",
+                               partition_by={"tstamp": "double"},
                                external=True)
+            # describe table
+            data = spark.get_table_schema("historical_categories")
+            assert_that(data,
+                        has_entries('partition', is_(['tstamp']),
+                                    'tstamp', 'double'))
         finally:
             spark.close()
