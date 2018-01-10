@@ -78,17 +78,17 @@ def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
                           log_level=FATAL_LEVEL):
     factory = functools.partial(SparkInstance,
                                 master=master,
-                                appName=app_name,
+                                app_name=app_name,
                                 log_level=log_level)
 
     utility(_context, provides=ISparkInstance, factory=factory)
 
 
-def registerHiveSparkInstance(_context, master=u"local", app_name=u"Hive Spark App",
+def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark App",
                               location=DEFAULT_LOCATION, log_level=FATAL_LEVEL):
     factory = functools.partial(HiveSparkInstance,
                                 master=master,
-                                appName=app_name,
+                                app_name=app_name,
                                 location=location,
                                 log_level=log_level)
 
