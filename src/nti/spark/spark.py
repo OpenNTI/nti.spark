@@ -194,7 +194,7 @@ class HiveSparkInstance(SparkInstance):
             }
             # Add in any additional marked partition columns
             if partition_by:
-                for key, value in partition_by.iteritems():
+                for key, value in partition_by.items():
                     partition_cols[key] = value
             # Convert column collections to query strings
             partition_cols_str = _columns_as_str(partition_cols)
