@@ -18,3 +18,5 @@ docs/_build/
 # spark
 spark-warehouse/
 metastore_db/
+derby.log
+home/
