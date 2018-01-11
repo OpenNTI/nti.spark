@@ -45,7 +45,7 @@ def to_pyspark_type(field):
         or IChoice.providedBy(field) \
         or ITextLine.providedBy(field):
         result = StringType()
-    if     IBytes.providedBy(field) \
+    elif   IBytes.providedBy(field) \
         or IBytesLine.providedBy(field):
         result = BinaryType()
     elif IInt.providedBy(field):
