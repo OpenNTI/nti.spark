@@ -161,7 +161,7 @@ class HiveSparkInstance(SparkInstance):
         Create a simple hive table like
 
         :param name: Table name
-        :param like: Source table name 
+        :param like: Source table name
 
         :type name: str
         :type like: str
@@ -223,13 +223,18 @@ class HiveSparkInstance(SparkInstance):
         result = self.hive.sql(create_query)
         return result
 
-    def select_from(self, table, columns=None):
+    def select_from(self, table, columns=None, distinct=False):
         select_param = []
         for c in columns or ():
             select_param.append("%s" % c)
         select_param = ', '.join(select_param) or '*'
+        distinct_param = "" if not distinct else "DISTINCT"
         # pylint: disable=no-member
-        return self.hive.sql("SELECT (%s) FROM %s" % (select_param, table))
+        try:
+            result = self.hive.sql("SELECT %s (%s) FROM %s" % (distinct_param, select_param, table))
+        except:
+            result = None
+        return result
 
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
