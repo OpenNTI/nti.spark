@@ -229,10 +229,13 @@ class HiveSparkInstance(SparkInstance):
             select_param.append("%s" % c)
         select_param = ', '.join(select_param) or '*'
         distinct_param = "" if not distinct else "DISTINCT"
-        # pylint: disable=no-member
+        __traceback_info__ = "SELECT %s (%s) FROM %s" % (distinct_param, select_param, table)
         try:
-            result = self.hive.sql("SELECT %s (%s) FROM %s" % (distinct_param, select_param, table))
-        except:
+            # pylint: disable=no-member
+            result = self.hive.sql(__traceback_info__)
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Error while executing select statement '%s'",
+                             __traceback_info__)
             result = None
         return result
 
