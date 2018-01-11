@@ -8,6 +8,7 @@ from __future__ import absolute_import
 # pylint: disable=protected-access,too-many-public-methods,inherit-non-class
 
 from hamcrest import is_
+from hamcrest import none
 from hamcrest import raises
 from hamcrest import calling
 from hamcrest import assert_that
@@ -139,5 +140,9 @@ class TestSpark(SparkLayerTest):
             cols = [{'id': 1, 'name': 'admin', "accounts": [717]}]
             source = spark.hive.createDataFrame(cols, schema=groups_schema)
             spark.insert_into("groups", source, True)
+
+            # 10. coverage select
+            assert_that(spark.select_from("unfound", "id", True),
+                        is_(none()))
         finally:
             spark.close()
