@@ -71,16 +71,15 @@ def _dataframe_as_str(data_frame):
     result = ','.join(result)
     return result
 
-def _match_schema(table_schema, source):
+def _match_schema(table, source):
     """
     Re-arrange the source data frame
     to match schema ordering of the
     internal table
     """
-    table_schema_cols = set([col for col in table_schema.keys() if col != PARTITION_KEY])
     # Both column lists must contain the same data
-    assert set(source.columns) == table_schema_cols
-    return source.select(*table_schema_cols)
+    assert set(source.columns) == set(table.columns)
+    return source.select(*table.columns)
 
 @interface.implementer(ISparkInstance)
 class SparkInstance(SchemaConfigured):
@@ -252,7 +251,7 @@ class HiveSparkInstance(SparkInstance):
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
         # because there is nothing to enter
-        source = _match_schema(self.get_table_schema(table), source)
+        source = _match_schema(self.hive.table(table), source)
         if source.count():
             partition_str = ""
             # Get any partitioned columns
