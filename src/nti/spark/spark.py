@@ -71,6 +71,15 @@ def _dataframe_as_str(data_frame):
     result = ','.join(result)
     return result
 
+def _match_schema(table, source):
+    """
+    Re-arrange the source data frame
+    to match schema ordering of the
+    internal table
+    """
+    # Both column lists must contain the same data
+    assert set(source.columns) == set(table.columns)
+    return source.select(*table.columns)
 
 @interface.implementer(ISparkInstance)
 class SparkInstance(SchemaConfigured):
@@ -242,6 +251,7 @@ class HiveSparkInstance(SparkInstance):
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
         # because there is nothing to enter
+        source = _match_schema(self.hive.table(table), source)
         if source.count():
             partition_str = ""
             # Get any partitioned columns
@@ -257,16 +267,16 @@ class HiveSparkInstance(SparkInstance):
                 partition_str = partition_str[:-1] + ")"
             # Inidicate overwrite
             if not overwrite:
-                insert_param = "INSERT INTO %s " % (table)
+                insert_param = "INSERT INTO %s " % (table,)
             else:
-                insert_param = "INSERT OVERWRITE TABLE %s " % (table)
+                insert_param = "INSERT OVERWRITE TABLE %s " % (table,)
             # Add in partition if necessary
             if partition_str:
                 insert_param += "PARTITION %s " % (partition_str)
                 source = source.drop(*partition_col)
             # Convert the source dataframe into
             # a query string
-            source_str = _dataframe_as_str(source)
-            insert_param += "VALUES %s" % (source_str)
+            values = _dataframe_as_str(source)
+            insert_param += "VALUES %s" % (values)
             # pylint: disable=no-member
             self.hive.sql(insert_param)
