@@ -167,6 +167,11 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=no-member
         self.hive.sql(create_query)
 
+    def drop_table(self, name):
+        drop_query = "DROP TABLE IF EXISTS %s" % name
+        # pylint: disable=no-member
+        return self.hive.sql(drop_query)
+
     def create_table_like(self, name, like):
         """
         Create a simple hive table like
@@ -181,7 +186,7 @@ class HiveSparkInstance(SparkInstance):
         # not trying to do anything additional
         create_query = "CREATE TABLE IF NOT EXISTS %s LIKE %s" % (name, like)
         # pylint: disable=no-member
-        self.hive.sql(create_query)
+        return self.hive.sql(create_query)
 
     def create_table(self, name, columns=None, partition_by=None, like=None, external=False):
         if not external:
