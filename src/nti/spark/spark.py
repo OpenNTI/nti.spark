@@ -71,6 +71,7 @@ def _dataframe_as_str(data_frame):
     result = ','.join(result)
     return result
 
+
 def _match_schema(table, source):
     """
     Re-arrange the source data frame
@@ -80,6 +81,7 @@ def _match_schema(table, source):
     # Both column lists must contain the same data
     assert set(source.columns) == set(table.columns)
     return source.select(*table.columns)
+
 
 @interface.implementer(ISparkInstance)
 class SparkInstance(SchemaConfigured):
@@ -251,6 +253,7 @@ class HiveSparkInstance(SparkInstance):
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
         # because there is nothing to enter
+        # pylint: disable=no-member
         source = _match_schema(self.hive.table(table), source)
         if source.count():
             partition_str = ""
