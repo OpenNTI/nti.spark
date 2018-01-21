@@ -17,8 +17,6 @@ from hamcrest import has_entries
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
 
-import os
-import shutil
 from collections import OrderedDict
 
 from zope import interface
@@ -58,12 +56,6 @@ category_schema = to_pyspark_schema(ICategory)
 
 
 class TestSpark(SparkLayerTest):
-
-    @classmethod
-    def clean_up(cls):
-        shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
-        shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
-        shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
 
     def spark(self):
         result = HiveSparkInstance(master=u"local",
@@ -154,4 +146,3 @@ class TestSpark(SparkLayerTest):
                         is_(none()))
         finally:
             spark.close()
-            self.clean_up()

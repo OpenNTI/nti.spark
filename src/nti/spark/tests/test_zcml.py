@@ -56,8 +56,8 @@ HIVESPARK_ZCML_STRING = u"""
 
 class TestZcml(nti.testing.base.ConfiguringTestBase):
 
-    @classmethod
-    def clean_up(cls):
+    def tearDown(self):
+        nti.testing.base.ConfiguringTestBase.tearDown(self)
         shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
         shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
         shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
@@ -67,11 +67,9 @@ class TestZcml(nti.testing.base.ConfiguringTestBase):
         spark = component.queryUtility(ISparkInstance)
         assert_that(spark, is_not(none()))
         spark.close()
-        self.clean_up()
 
     def test_hive_spark_registration(self):
         self.configure_string(HIVESPARK_ZCML_STRING)
         spark = component.queryUtility(IHiveSparkInstance)
         assert_that(spark, is_not(none()))
         spark.close()
-        self.clean_up()

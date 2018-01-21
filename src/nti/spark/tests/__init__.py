@@ -7,6 +7,9 @@ from __future__ import absolute_import
 
 # pylint: disable=protected-access,too-many-public-methods,arguments-differ
 
+import os
+import shutil
+
 from zope.component.hooks import setHooks
 
 from nti.testing.layers import GCLayerMixin
@@ -23,6 +26,12 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     set_up_packages = ('nti.spark',)
 
     @classmethod
+    def clean_up(cls):
+        shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
+        shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
+        shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
+
+    @classmethod
     def setUp(cls):
         setHooks()
         cls.setUpPackages()
@@ -31,6 +40,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     def tearDown(cls):
         cls.tearDownPackages()
         zope.testing.cleanup.cleanUp()
+        cls.clean_up()
 
     @classmethod
     def testSetUp(cls, unused_test=None):
