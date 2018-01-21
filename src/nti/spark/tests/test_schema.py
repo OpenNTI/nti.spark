@@ -116,7 +116,6 @@ class IOrganization(interface.Interface):
 class TestSchema(SparkLayerTest):
 
     def test_schema(self):
-
         schema = to_pyspark_schema(IOrganization, 'foo')
         assert_that(schema.json(), is_not(none()))
         assert_that(schema, has_length(18))

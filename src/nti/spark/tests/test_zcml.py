@@ -11,6 +11,9 @@ from hamcrest import none
 from hamcrest import is_not
 from hamcrest import assert_that
 
+import os
+import shutil
+
 from zope import component
 
 from nti.spark.interfaces import ISparkInstance
@@ -53,14 +56,22 @@ HIVESPARK_ZCML_STRING = u"""
 
 class TestZcml(nti.testing.base.ConfiguringTestBase):
 
+    @classmethod
+    def clean_up(cls):
+        shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
+        shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
+        shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
+
     def test_spark_registration(self):
         self.configure_string(SPARK_ZCML_STRING)
         spark = component.queryUtility(ISparkInstance)
         assert_that(spark, is_not(none()))
         spark.close()
+        self.clean_up()
 
     def test_hive_spark_registration(self):
         self.configure_string(HIVESPARK_ZCML_STRING)
         spark = component.queryUtility(IHiveSparkInstance)
         assert_that(spark, is_not(none()))
         spark.close()
+        self.clean_up()
