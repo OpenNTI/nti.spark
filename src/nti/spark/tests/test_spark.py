@@ -144,5 +144,9 @@ class TestSpark(SparkLayerTest):
             # 10. coverage select
             assert_that(spark.select_from("unfound", "id", True),
                         is_(none()))
+            
+            # 11. drop table
+            spark.drop_table('categories_like')
+            spark.drop_table('not_found')
         finally:
             spark.close()
