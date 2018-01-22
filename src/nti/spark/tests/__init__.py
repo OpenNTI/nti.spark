@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import os
 import shutil
+import tempfile
 
 from zope.component.hooks import setHooks
 
@@ -26,21 +27,23 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     set_up_packages = ('nti.spark',)
 
     @classmethod
-    def clean_up(cls):
-        shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
-        shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
-        shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
+    def clean_up(cls, path):
+        shutil.rmtree(path, True)
 
     @classmethod
     def setUp(cls):
         setHooks()
         cls.setUpPackages()
+        cls.env = tempfile.mkdtemp()
+        cls.cwd = os.getcwd()
+        os.chdir(cls.env)
 
     @classmethod
     def tearDown(cls):
         cls.tearDownPackages()
         zope.testing.cleanup.cleanUp()
-        cls.clean_up()
+        cls.clean_up(cls.env)
+        os.chdir(cls.cwd)
 
     @classmethod
     def testSetUp(cls, unused_test=None):
