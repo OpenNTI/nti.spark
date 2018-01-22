@@ -132,6 +132,7 @@ class HiveSparkInstance(SparkInstance):
         result = super(HiveSparkInstance, self).conf
         # pylint: disable=no-member
         result.set("spark.sql.catalogImplementation", "hive")
+        result.set("spark.scheduler.mode", "FAIR")
         return result
 
     @Lazy
