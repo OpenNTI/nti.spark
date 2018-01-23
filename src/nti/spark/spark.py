@@ -49,7 +49,7 @@ def _columns_as_str(column_dict):
 
 def _quote(v):
     if isinstance(v, six.string_types):
-        return "'%s'" % v
+        return "'%s'" % v.replace("'", r"\'")
     return "%s" % v
 
 
