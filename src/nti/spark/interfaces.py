@@ -12,7 +12,9 @@ from __future__ import absolute_import
 
 from zope import interface
 
+from nti.schema.field import Int
 from nti.schema.field import Object
+from nti.schema.field import IndexedIterable
 
 
 class IRDD(interface.Interface):
@@ -140,3 +142,52 @@ class IHiveSparkInstance(ISparkInstance):
         :type source: dict
         :type overwrite: bool
         """
+
+
+class IHiveTable(interface.Interface):
+    """
+    Interface marking a table either managed or
+    external in Hive
+    """
+
+    table_name = interface.Attribute("Name of the table to update")
+
+    database = interface.Attribute("Database name")
+
+    rows = Object(IDataFrame,
+                  title=u"Row contents of hive table",
+                  required=False,
+                  default=None)
+
+    def update(new_frame, timestamp=None):
+        """
+        Archive the data in the frame
+
+        :param rules:  The class:`nti.spark.interfaces.IDataFrame` to archive
+        :param timestamp: The timestamp
+        """
+
+
+class IHiveTimeIndexed(IHiveTable):
+    """
+    Interface marking a class:`IHiveTable` as
+    begin indexed by a timestamp
+    """
+
+    timestamp = Int(title=u"Timestamp of current load",
+                    required=False,
+                    default=None)
+
+
+class IHiveTimeIndexedHistoric(IHiveTable):
+    """
+    Interfface marking a class:`IHiveTable` as being
+    indexed by a timestamp and keeping historic logs
+    of previous events
+    """
+
+    timestamps = IndexedIterable(title=u"The past timestamps",
+                                 min_length=0,
+                                 required=False,
+                                 default=None,
+                                 value_type=Int(title=u"The id"))
