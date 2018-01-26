@@ -8,9 +8,20 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+#: Default log level
 DEFAULT_LOG_LEVEL = u'ALL'
 
+#: Default user data location
 DEFAULT_LOCATION = u'/user/hive/warehouse'
 
+#: Partion key
 PARTITION_KEY = u"partition"
+
+#: Partition information
 PARITION_INFORMATION = u"# Partition Information"
+
+#: Timestamp Column
+TIMESTAMP = u"tstamp"
+
+#: Timestamp Column Type
+TIMESTAMP_TYPE = u'bigint'
