@@ -90,22 +90,22 @@ class HiveTable(object):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name, like=like, external=True)
 
-    def _write_to_hive(self, new_frame):
+    def write_to_hive(self, new_frame, spark=None):
         # create temp frame
         new_frame.createOrReplaceTempView("new_frame")
         # create database
-        hive = component.getUtility(IHiveSparkInstance)
-        hive.create_database(self.database)
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        spark.create_database(self.database)
         # create table
-        self.create_table_like("new_frame", hive)
+        self.create_table_like("new_frame", spark)
         # insert new data
-        hive.insert_into(self.table_name, new_frame,
-                         overwrite=self.overwrite)
-        hive.hive.dropTempTable('new_frame')
+        spark.insert_into(self.table_name, new_frame,
+                          overwrite=self.overwrite)
+        spark.hive.dropTempTable('new_frame')
 
     def update(self, new_frame):
         assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
-        self._write_to_hive(new_frame)
+        self.write_to_hive(new_frame)
 
     @property
     def rows(self):
