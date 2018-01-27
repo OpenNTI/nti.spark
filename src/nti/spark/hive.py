@@ -81,16 +81,14 @@ def overwrite_table(source, target, spark=None):
 @interface.implementer(IHiveTable)
 class HiveTable(object):
 
-    def __init__(self, database, table_name):
+    def __init__(self, database, table_name, overwrite=True):
         self.database = database
+        self.overwrite = overwrite
         self.table_name = table_name
 
     def create_table_like(self, like, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name, like=like, external=True)
-
-    def get_timestamp(self, timestamp=None):
-        return get_timestamp(timestamp)
 
     def _write_to_hive(self, new_frame):
         # create temp frame
@@ -99,17 +97,15 @@ class HiveTable(object):
         hive = component.getUtility(IHiveSparkInstance)
         hive.create_database(self.database)
         # create table
-        self.create_table_like("new_frame")
+        self.create_table_like("new_frame", hive)
         # insert new data
-        hive.insert_into(self.table_name, new_frame, overwrite=True)
+        hive.insert_into(self.table_name, new_frame,
+                         overwrite=self.overwrite)
         hive.hive.dropTempTable('new_frame')
 
-    def update(self, new_frame, timestamp=None):
-        if not IDataFrame.providedBy(new_frame):
-            raise TypeError("Cannot update non-DataFrame")
-        timestamp = self.get_timestamp(timestamp)
-        frame = new_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
-        self._write_to_hive(frame)
+    def update(self, new_frame):
+        assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
+        self._write_to_hive(new_frame)
 
     @property
     def rows(self):
@@ -117,8 +113,22 @@ class HiveTable(object):
         return hive.select_from(self.table_name)
 
 
+class HiveTimeMixin(object):
+
+    def get_timestamp(self, timestamp=None):
+        return get_timestamp(timestamp)
+
+    def update(self, new_frame, timestamp=None):  # pylint: disable=arguments-differ
+        assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
+        # add timestamp to frame
+        timestamp = self.get_timestamp(timestamp)
+        frame = new_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
+        # write frame
+        return super(HiveTimeMixin, self).update(frame)
+
+
 @interface.implementer(IHiveTimeIndexed)
-class HiveTimeIndexed(HiveTable):
+class HiveTimeIndexed(HiveTimeMixin, HiveTable):
 
     @property
     def timestamp(self):
@@ -132,7 +142,7 @@ class HiveTimeIndexed(HiveTable):
 
 
 @interface.implementer(IHiveTimeIndexedHistoric)
-class HiveTimeIndexedHistoric(HiveTable):
+class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
 
     def create_table_like(self, like, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
@@ -140,11 +150,6 @@ class HiveTimeIndexedHistoric(HiveTable):
                                   like=like,
                                   external=True,
                                   partition_by={TIMESTAMP: TIMESTAMP_TYPE})
-
-    def write_from(self, source, timestamp=None):
-        return write_to_historical(source, self.table_name, timestamp)
-
-    # inteface properties
 
     @property
     def timestamps(self):
