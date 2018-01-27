@@ -44,8 +44,6 @@ from nti.spark.interfaces import IHiveTimeIndexedHistoric
 
 from nti.spark.schema import to_pyspark_schema
 
-from nti.spark.spark import HiveSparkInstance
-
 from nti.spark.tests import SparkLayerTest
 
 
@@ -70,11 +68,7 @@ category_schema = to_pyspark_schema(ICategory)
 class TestSpark(SparkLayerTest):
 
     def spark(self):
-        result = HiveSparkInstance(master=u"local",
-                                   app_name=u"HiveApp",
-                                   log_level=u"FATAL",
-                                   location="spark-warehouse")
-        return result
+        return component.getUtility(IHiveSparkInstance)
 
     @property
     def schema(self):
@@ -193,11 +187,6 @@ class TestSpark(SparkLayerTest):
 
     def test_spark(self):
         spark = self.spark()
-        component.getGlobalSiteManager().registerUtility(spark, IHiveSparkInstance)
-        try:
-            self.check_hive(spark)
-            self.check_hive_table(spark)
-            self.check_historic_table(spark)
-        finally:
-            spark.close()
-            component.getGlobalSiteManager().unregisterUtility(spark, IHiveSparkInstance)
+        self.check_hive(spark)
+        self.check_hive_table(spark)
+        self.check_historic_table(spark)

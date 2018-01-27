@@ -11,4 +11,12 @@
 
 	<include package="." file="configure_spark.zcml" />
 
+	<include package="." file="meta.zcml" />
+
+	<!-- Directives -->
+	<configure zcml:condition="have testmode">
+		<spark:registerHiveSparkInstance app_name="Spark APP"
+										 location="spark-warehouse" />
+	</configure>
+
 </configure>

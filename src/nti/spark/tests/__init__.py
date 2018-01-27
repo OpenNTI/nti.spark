@@ -11,6 +11,8 @@ import os
 import shutil
 import tempfile
 
+from zope import component
+
 from zope.component.hooks import setHooks
 
 from nti.testing.layers import GCLayerMixin
@@ -18,6 +20,8 @@ from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
 import zope.testing.cleanup
+
+from nti.spark.interfaces import IHiveSparkInstance
 
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
@@ -39,6 +43,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 
     @classmethod
     def tearDown(cls):
+        component.getUtility(IHiveSparkInstance).close()
         cls.tearDownPackages()
         zope.testing.cleanup.cleanUp()
         cls.clean_up()
