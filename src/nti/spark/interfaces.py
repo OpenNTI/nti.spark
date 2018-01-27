@@ -159,12 +159,11 @@ class IHiveTable(interface.Interface):
                   required=False,
                   default=None)
 
-    def update(new_frame, timestamp=None):
+    def update(new_frame):
         """
         Archive the data in the frame
 
         :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
-        :param timestamp: The timestamp
         """
 
 
@@ -177,6 +176,14 @@ class IHiveTimeIndexed(IHiveTable):
     timestamp = Int(title=u"Timestamp of current load",
                     required=False,
                     default=None)
+    
+    def update(new_frame, timestamp=None):  # pylint: disable=arguments-differ
+        """
+        Archive the data in the frame
+
+        :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
+        :param timestamp: The timestamp
+        """
 
 
 class IHiveTimeIndexedHistoric(IHiveTable):
@@ -191,11 +198,11 @@ class IHiveTimeIndexedHistoric(IHiveTable):
                                  required=False,
                                  default=None,
                                  value_type=Int(title=u"The id"))
-    
-    def write_from(source, timestamp=None):
-        """
-        Write the data from the source table 
 
-        :param source:  Source table name
+    def update(new_frame, timestamp=None):  # pylint: disable=arguments-differ
+        """
+        Archive the data in the frame
+
+        :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
         """
