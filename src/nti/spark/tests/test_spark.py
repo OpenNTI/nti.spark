@@ -67,19 +67,23 @@ category_schema = to_pyspark_schema(ICategory)
 
 class TestSpark(SparkLayerTest):
 
+    database = "db"
+    table_name = "db.sample"
+    historic_name = "db.historic"
+
     def spark(self):
         return component.getUtility(IHiveSparkInstance)
 
     @property
     def schema(self):
-        return StructType([StructField("sample", LongType(), True)])
+        return StructType([StructField("data", LongType(), True)])
 
     def check_hive_table(self, spark):
         sample_list = [(118465,), (118300,)]
         result_rdd = spark.context.parallelize(sample_list)
         result_frame = spark.hive.createDataFrame(result_rdd, self.schema)
 
-        hive_table = HiveTimeIndexed("sample", "sample_list")
+        hive_table = HiveTimeIndexed(self.database, self.table_name)
         assert_that(hive_table, validly_provides(IHiveTimeIndexed))
         assert_that(hive_table, verifiably_provides(IHiveTimeIndexed))
 
@@ -95,12 +99,19 @@ class TestSpark(SparkLayerTest):
         result_rdd = spark.context.parallelize(historic_list)
         result_frame = spark.hive.createDataFrame(result_rdd, self.schema)
 
-        historc_table = HiveTimeIndexedHistoric("sample", "sample_historic")
-        assert_that(historc_table, validly_provides(IHiveTimeIndexedHistoric))
-        assert_that(historc_table, verifiably_provides(IHiveTimeIndexedHistoric))
+        historc_table = HiveTimeIndexedHistoric(self.database,
+                                                self.historic_name)
+        assert_that(historc_table,
+                    validly_provides(IHiveTimeIndexedHistoric))
+        assert_that(historc_table,
+                    verifiably_provides(IHiveTimeIndexedHistoric))
 
         historc_table.update(result_frame, 200)
         assert_that(historc_table, has_property('timestamps', is_([200])))
+
+        historc_table.write_from(self.table_name, 300)
+        assert_that(historc_table,
+                    has_property('timestamps', is_([300, 200])))
 
     def check_hive(self, spark):
         # 1. Verify and validate
@@ -186,6 +197,7 @@ class TestSpark(SparkLayerTest):
         spark.drop_table('not_found')
 
     def test_spark(self):
+        # order matters
         spark = self.spark()
         self.check_hive(spark)
         self.check_hive_table(spark)
