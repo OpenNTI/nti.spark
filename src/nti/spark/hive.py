@@ -85,8 +85,8 @@ class HiveTable(object):
         self.database = database
         self.table_name = table_name
 
-    def create_table_like(self, like):
-        spark = component.getUtility(IHiveSparkInstance)
+    def create_table_like(self, like, spark=None):
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name, like=like, external=True)
 
     def get_timestamp(self, timestamp=None):
@@ -134,8 +134,8 @@ class HiveTimeIndexed(HiveTable):
 @interface.implementer(IHiveTimeIndexedHistoric)
 class HiveTimeIndexedHistoric(HiveTable):
 
-    def create_table_like(self, like):
-        spark = component.getUtility(IHiveSparkInstance)
+    def create_table_like(self, like, spark=None):
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name,
                                   like=like,
                                   external=True,
