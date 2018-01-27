@@ -163,7 +163,7 @@ class IHiveTable(interface.Interface):
         """
         Archive the data in the frame
 
-        :param rules:  The class:`nti.spark.interfaces.IDataFrame` to archive
+        :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
         """
 
@@ -191,3 +191,11 @@ class IHiveTimeIndexedHistoric(IHiveTable):
                                  required=False,
                                  default=None,
                                  value_type=Int(title=u"The id"))
+    
+    def write_from(source, timestamp=None):
+        """
+        Write the data from the source table 
+
+        :param source:  Source table name
+        :param timestamp: The timestamp
+        """
