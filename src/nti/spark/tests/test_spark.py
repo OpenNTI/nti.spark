@@ -36,6 +36,7 @@ from nti.spark.hive import HiveTimeIndexed
 from nti.spark.hive import HiveTimeIndexedHistoric
 
 from nti.spark.hive import overwrite_table
+from nti.spark.hive import write_to_historical
 
 from nti.spark.interfaces import IHiveContext
 from nti.spark.interfaces import ISparkContext
@@ -89,9 +90,6 @@ class TestSpark(SparkLayerTest):
         assert_that(hive_table, validly_provides(IHiveTimeIndexed))
         assert_that(hive_table, verifiably_provides(IHiveTimeIndexed))
 
-        assert_that(calling(hive_table.update).with_args(None, None),
-                    raises(TypeError))
-
         hive_table.update(result_frame, 100)
         assert_that(hive_table.rows.collect(), has_length(2))
         assert_that(hive_table, has_property('timestamp', is_(100)))
@@ -111,11 +109,12 @@ class TestSpark(SparkLayerTest):
         historc_table.update(result_frame, 200)
         assert_that(historc_table, has_property('timestamps', is_([200])))
 
-        historc_table.write_from(self.table_name, 300)
+        # write into historical using table
+        write_to_historical(self.table_name, self.historic_name, 300, spark)
         assert_that(historc_table,
                     has_property('timestamps', is_([300, 200])))
 
-    def check_hive(self, spark):
+    def check_spark(self, spark):
         # 1. Verify and validate
         assert_that(spark, validly_provides(IHiveSparkInstance))
         assert_that(spark, verifiably_provides(IHiveSparkInstance))
@@ -188,6 +187,7 @@ class TestSpark(SparkLayerTest):
         columns['name'] = 'STRING'
         columns['accounts'] = 'ARRAY<INT>'
         spark.create_table("groups", columns=columns)
+
         # insert array
         cols = [{'id': 1, 'name': 'admin', "accounts": [717]}]
         source = spark.hive.createDataFrame(cols, schema=groups_schema)
@@ -202,8 +202,7 @@ class TestSpark(SparkLayerTest):
         spark.drop_table('not_found')
 
     def test_spark(self):
-        # order matters
         spark = self.spark()
-        self.check_hive(spark)
+        self.check_spark(spark)
         self.check_hive_table(spark)
         self.check_historic_table(spark)
