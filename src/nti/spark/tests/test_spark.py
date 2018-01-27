@@ -35,6 +35,8 @@ from zope.schema import TextLine
 from nti.spark.hive import HiveTimeIndexed
 from nti.spark.hive import HiveTimeIndexedHistoric
 
+from nti.spark.hive import overwrite_table
+
 from nti.spark.interfaces import IHiveContext
 from nti.spark.interfaces import ISparkContext
 from nti.spark.interfaces import ISparkSession
@@ -156,8 +158,11 @@ class TestSpark(SparkLayerTest):
 
         # 6. create a simple like table
         spark.create_table("categories_like", like="categories")
+        
+        # 7. overwrite table
+        overwrite_table("categories", "categories_like", spark)
 
-        # 7. create table with partition
+        # 8. create table with partition
         spark.create_table("assets",
                            columns={"id": "INT",
                                     "name": "STRING"},
@@ -166,18 +171,18 @@ class TestSpark(SparkLayerTest):
         source = spark.hive.createDataFrame(cols)
         spark.insert_into("assets", source, False)
 
-        # 8. create table with partition
+        # 9. create table with partition
         spark.create_table("historical_categories",
                            like="categories",
                            partition_by={"tstamp": "double"},
                            external=True)
-        # describe table
+        # 10. describe table
         data = spark.get_table_schema("historical_categories")
         assert_that(data,
                     has_entries('partition', is_(['tstamp']),
                                 'tstamp', 'double'))
 
-        # 9. create groups table
+        # 11. create groups table
         columns = OrderedDict()
         columns['id'] = 'INT'
         columns['name'] = 'STRING'
@@ -188,11 +193,11 @@ class TestSpark(SparkLayerTest):
         source = spark.hive.createDataFrame(cols, schema=groups_schema)
         spark.insert_into("groups", source, True)
 
-        # 10. coverage select
+        # 12. coverage select
         assert_that(spark.select_from("unfound", "id", True),
                     is_(none()))
 
-        # 11. drop table
+        # 13. drop table
         spark.drop_table('categories_like')
         spark.drop_table('not_found')
 

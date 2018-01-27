@@ -27,6 +27,57 @@ LIT_FUNC = getattr(functions, 'lit')
 logger = __import__('logging').getLogger(__name__)
 
 
+def get_timestamp(timestamp=None):
+    timestamp = time.time() if timestamp is None else timestamp
+    return int(timestamp)
+
+
+def write_to_historical(source, target, timestamp=None, spark=None):
+    """
+    Insert the data from the source table to a target partitioned table
+
+    :param source: Source table name
+    :param target: Target (partitioned) table name
+    :param timestamp: (optional) Timestamp
+
+    :type source: str
+    :type target: str
+    :type timestamp: int
+    """
+    timestamp = get_timestamp(timestamp)
+    spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+    # copy into historical table
+    table = spark.hive.table(target)
+    columns = list(table.columns)
+    columns.remove(TIMESTAMP)
+    # execute query
+    query = ["INSERT INTO TABLE %s" % target,
+             "PARTITION (%s=%s) " % (TIMESTAMP, timestamp),
+             "SELECT %s FROM %s" % (','.join(columns), source)]
+    return spark.hive.sql(' '.join(query))
+
+
+def overwrite_table(source, target, spark=None):
+    """
+    overwrite the target table using the data from the source
+
+    :param source: Source table name
+    :param target: Target (partitioned) table name
+
+    :type source: str
+    :type target: str
+    """
+    spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+    table = spark.hive.table(target)
+    columns = ','.join(table.columns)
+    query = """
+            INSERT OVERWRITE TABLE %s
+            SELECT %s FROM %s
+            """ % (target, columns, source)
+    query = ' '.join(query.split())
+    return spark.hive.sql(query)
+
+
 @interface.implementer(IHiveTable)
 class HiveTable(object):
 
@@ -34,8 +85,12 @@ class HiveTable(object):
         self.database = database
         self.table_name = table_name
 
-    def create_table(self, hive, like):
-        return hive.create_table(self.table_name, like=like, external=True)
+    def create_table_like(self, like):
+        spark = component.getUtility(IHiveSparkInstance)
+        return spark.create_table(self.table_name, like=like, external=True)
+
+    def get_timestamp(self, timestamp=None):
+        return get_timestamp(timestamp)
 
     def _write_to_hive(self, new_frame):
         # create temp frame
@@ -44,15 +99,10 @@ class HiveTable(object):
         hive = component.getUtility(IHiveSparkInstance)
         hive.create_database(self.database)
         # create table
-        self.create_table(hive, "new_frame")
+        self.create_table_like("new_frame")
         # insert new data
         hive.insert_into(self.table_name, new_frame, overwrite=True)
         hive.hive.dropTempTable('new_frame')
-
-    @classmethod
-    def get_timestamp(cls, timestamp=None):
-        timestamp = time.time() if timestamp is None else timestamp
-        return int(timestamp)
 
     def update(self, new_frame, timestamp=None):
         if not IDataFrame.providedBy(new_frame):
@@ -84,40 +134,15 @@ class HiveTimeIndexed(HiveTable):
 @interface.implementer(IHiveTimeIndexedHistoric)
 class HiveTimeIndexedHistoric(HiveTable):
 
-    def create_table(self, hive, like):
-        return hive.create_table(self.table_name, 
-                                 like=like,
-                                 external=True,
-                                 partition_by={TIMESTAMP: TIMESTAMP_TYPE})
-
-    # helper write methods
-
-    @classmethod
-    def write_to_historical(cls, source, target, timestamp=None):
-        """
-        Insert the data from the source table to a target partitioned table
-    
-        :param source: Source table name
-        :param target: Target (partitioned) table name
-        :param timestamp: (optional) Timestamp
-    
-        :type source: str
-        :type target: str
-        :type timestamp: int
-        """
-        timestamp = cls.get_timestamp(timestamp)
+    def create_table_like(self, like):
         spark = component.getUtility(IHiveSparkInstance)
-        # copy into historical table
-        table = spark.hive.table(target)
-        columns = list(table.columns)
-        columns.remove(TIMESTAMP)
-        query = ["INSERT INTO TABLE %s" % target,
-                 "PARTITION (%s=%s) " % (TIMESTAMP, timestamp),
-                 "SELECT %s FROM %s" % (','.join(columns), source)]
-        return spark.hive.sql(' '.join(query))
-    
+        return spark.create_table(self.table_name,
+                                  like=like,
+                                  external=True,
+                                  partition_by={TIMESTAMP: TIMESTAMP_TYPE})
+
     def write_from(self, source, timestamp=None):
-        return self.write_to_historical(source, self.table_name, timestamp)
+        return write_to_historical(source, self.table_name, timestamp)
 
     # inteface properties
 
