@@ -67,7 +67,7 @@ class IRegisterSparkInstance(interface.Interface):
 
 class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     """
-    Provides a schema for registering a hive spark Context
+    Provides a schema for registering a hive spark instance
     """
     location = fields.TextLine(title=u"Hive data location",
                                required=False,
