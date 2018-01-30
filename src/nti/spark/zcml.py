@@ -59,10 +59,10 @@ class IRegisterSparkInstance(interface.Interface):
                                required=False,
                                default=u"Spark App")
 
-    love_level = Choice(vocabulary=LOG_LEVELS_VOCABULARY,
-                        title=u'Logging Level',
-                        required=False,
-                        default=FATAL_LEVEL)
+    log_level = Choice(vocabulary=LOG_LEVELS_VOCABULARY,
+                       title=u'Logging Level',
+                       required=False,
+                       default=FATAL_LEVEL)
 
 
 class IRegisterHiveSparkInstance(IRegisterSparkInstance):
