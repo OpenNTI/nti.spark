@@ -57,25 +57,35 @@ def write_to_historical(source, target, timestamp=None, spark=None):
     return spark.hive.sql(' '.join(query))
 
 
-def overwrite_table(source, target, spark=None):
+def insert_into_table(source, target, overwrite=False, spark=None):
     """
-    overwrite the target table using the data from the source
+    Insert into the target table using the data from the source
 
     :param source: Source table name
     :param target: Target (partitioned) table name
+    :param overwrite: Overwrite flag
 
     :type source: str
     :type target: str
+    :type overwrite: bool
     """
     spark = component.getUtility(IHiveSparkInstance) if not spark else spark
     table = spark.hive.table(target)
     columns = ','.join(table.columns)
+    overwrite = 'OVERWRITE' if overwrite else ''
     query = """
-            INSERT OVERWRITE TABLE %s
+            INSERT %s TABLE %s
             SELECT %s FROM %s
-            """ % (target, columns, source)
+            """ % (overwrite, target, columns, source)
     query = ' '.join(query.split())
     return spark.hive.sql(query)
+
+
+def overwrite_table(source, target, spark=None):
+    """
+    overwrite the target table using the data from the source
+    """
+    return insert_into_table(source, target, True, spark)
 
 
 @interface.implementer(IHiveTable)
