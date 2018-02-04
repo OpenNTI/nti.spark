@@ -161,6 +161,20 @@ class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
                                   external=True,
                                   partition_by={TIMESTAMP: TIMESTAMP_TYPE})
 
+    def partition(self, timestamp, spark=None):
+        timestamp = int(timestamp)
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        query = "SELECT * FROM %s WHERE %s=%s" % (self.table_name, TIMESTAMP, timestamp)
+        __traceback_info__ = query
+        try:
+            # pylint: disable=no-member
+            result = spark.hive.sql(__traceback_info__)
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Error while executing select statement '%s'",
+                             __traceback_info__)
+            result = None
+        return result
+
     @property
     def timestamps(self):
         hive = component.getUtility(IHiveSparkInstance)
