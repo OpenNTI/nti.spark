@@ -241,10 +241,8 @@ class HiveSparkInstance(SparkInstance):
         return result
 
     def select_from(self, table, columns=None, distinct=False):
-        select_param = []
-        for c in columns or ():
-            select_param.append("%s" % c)
-        select_param = ', '.join(select_param) or '*'
+        select_param = ["%s" % c for c in columns or ()]
+        select_param = ','.join(select_param) or '*'
         distinct_param = "" if not distinct else "DISTINCT"
         __traceback_info__ = "SELECT %s (%s) FROM %s" % (distinct_param, select_param, table)
         try:

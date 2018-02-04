@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 from hamcrest import is_
 from hamcrest import none
+from hamcrest import is_not
 from hamcrest import raises
 from hamcrest import calling
 from hamcrest import has_length
@@ -106,9 +107,15 @@ class TestSpark(SparkLayerTest):
         assert_that(historc_table,
                     verifiably_provides(IHiveTimeIndexedHistoric))
 
+        data_frame = historc_table.partition(200)
+        assert_that(data_frame, is_(none()))
+
         historc_table.update(result_frame, 200)
         assert_that(historc_table, has_property('timestamps', is_([200])))
 
+        data_frame = historc_table.partition(200)
+        assert_that(data_frame, is_not(none()))
+        
         # write into historical using table
         write_to_historical(self.table_name, self.historic_name, 300, spark)
         assert_that(historc_table,
