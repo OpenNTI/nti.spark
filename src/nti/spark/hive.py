@@ -72,7 +72,7 @@ def insert_into_table(source, target, overwrite=False, spark=None):
     spark = component.getUtility(IHiveSparkInstance) if not spark else spark
     table = spark.hive.table(target)
     columns = ','.join(table.columns)
-    overwrite = 'OVERWRITE' if overwrite else ''
+    overwrite = 'OVERWRITE' if overwrite else 'INTO'
     query = """
             INSERT %s TABLE %s
             SELECT %s FROM %s
