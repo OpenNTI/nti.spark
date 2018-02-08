@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import six
+import collections
 
 from pyspark import SparkContext
 
@@ -190,7 +191,7 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=no-member
         return self.hive.sql(create_query)
 
-    def create_table(self, name, columns=None, partition_by=None, like=None, 
+    def create_table(self, name, columns=None, partition_by=None, like=None,
                      external=False, storage=DEFAULT_STORAGE_FORMAT):
         if not external:
             create_query = "CREATE TABLE IF NOT EXISTS %s" % name
@@ -241,6 +242,18 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=no-member
         result = self.hive.sql(create_query)
         return result
+
+    def drop_partition(self, table, partition):
+        assert isinstance(partition, collections.Mapping)
+        if self.is_partitioned(table) and partition:
+            query = ','.join('%s=%s' % (name, value)
+                             for name, value in partition.items())
+            query = 'ALTER TABLE %s DROP IF EXISTS PARTITION(%s)' % (table, query)
+            # pylint: disable=unused-variable
+            __traceback_info__ = query
+            # pylint: disable=no-member
+            result = self.hive.sql(query)
+            return result
 
     def select_from(self, table, columns=None, distinct=False):
         select_param = ["%s" % c for c in columns or ()]
