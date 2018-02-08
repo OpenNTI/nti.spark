@@ -29,6 +29,7 @@ from nti.spark import PARTITION_KEY
 from nti.spark import DEFAULT_LOCATION
 from nti.spark import DEFAULT_LOG_LEVEL
 from nti.spark import PARITION_INFORMATION
+from nti.spark import DEFAULT_STORAGE_FORMAT
 
 from nti.spark.interfaces import ISparkInstance
 from nti.spark.interfaces import IHiveSparkInstance
@@ -189,7 +190,8 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=no-member
         return self.hive.sql(create_query)
 
-    def create_table(self, name, columns=None, partition_by=None, like=None, external=False):
+    def create_table(self, name, columns=None, partition_by=None, like=None, 
+                     external=False, storage=DEFAULT_STORAGE_FORMAT):
         if not external:
             create_query = "CREATE TABLE IF NOT EXISTS %s" % name
         else:
@@ -230,7 +232,7 @@ class HiveSparkInstance(SparkInstance):
             if partition_by:
                 create_query += " PARTITIONED BY (%s)" % _columns_as_str(partition_by)
         # always store as parquet file
-        create_query += " STORED AS PARQUET"
+        create_query += " STORED AS %s" % storage
         if external:
             location = name if not self.location else "%s/%s" % (self.location, name)
             create_query += " LOCATION '%s'" % location

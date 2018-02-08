@@ -102,7 +102,8 @@ class IHiveSparkInstance(ISparkInstance):
         If there is, return the list of those attributes
         """
 
-    def create_table(name, partition_by=None, columns=None, like=None, external=False):
+    def create_table(name, partition_by=None, columns=None, like=None, 
+                     external=False, storage='ORC'):
         """
         Create a hive table
 
@@ -111,12 +112,14 @@ class IHiveSparkInstance(ISparkInstance):
         :param partition_by: (optional) Dictionary of columns vs types to partition a table
         :param like: (optional) Source table name 
         :param external: Create a external table
+        :param storage: Storage method (e.g. ORC, PARQUET)
 
         :type name: str
         :type columns: dict
         :type partition_by: dict
         :type like: str
         :type external: bool
+        :type storage: str
         """
 
     def select_from(table, columns=None):

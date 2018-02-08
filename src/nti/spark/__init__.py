@@ -25,3 +25,12 @@ TIMESTAMP = u"tstamp"
 
 #: Timestamp Column Type
 TIMESTAMP_TYPE = u'bigint'
+
+#: ORC Storage format
+ORC = u'ORC'
+
+#: Parquet storage format
+PARQUET = u'PARQUET'
+
+#: Default storage format
+DEFAULT_STORAGE_FORMAT = ORC
