@@ -122,6 +122,17 @@ class IHiveSparkInstance(ISparkInstance):
         :type storage: str
         """
 
+    def drop_partition(table, partition):
+        """
+        Drop a partition from a hive table
+
+        :param table: Table name
+        :param columns: Map of partition column names vs values
+
+        :type name: str
+        :type columns: dict
+        """
+    
     def select_from(table, columns=None):
         """
         Return a dataframe with the table data

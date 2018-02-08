@@ -115,7 +115,7 @@ class TestSpark(SparkLayerTest):
 
         data_frame = historc_table.partition(200)
         assert_that(data_frame, is_not(none()))
-        
+
         # write into historical using table
         write_to_historical(self.table_name, self.historic_name, 300, spark)
         assert_that(historc_table,
@@ -164,7 +164,7 @@ class TestSpark(SparkLayerTest):
 
         # 6. create a simple like table
         spark.create_table("categories_like", like="categories")
-        
+
         # 7. overwrite table
         overwrite_table("categories", "categories_like", spark)
 
@@ -172,23 +172,26 @@ class TestSpark(SparkLayerTest):
         spark.create_table("assets",
                            columns={"id": "INT",
                                     "name": "STRING"},
-                           partition_by={"timestamp": "double"})
-        cols = [{'name': 'students', 'id': 1, 'timestamp': 100.0}]
+                           partition_by={"timestamp": "int"})
+        cols = [{'name': 'students', 'id': 1, 'timestamp': 100}]
         source = spark.hive.createDataFrame(cols)
         spark.insert_into("assets", source, False)
 
-        # 9. create table with partition
+        # 9. drop partition
+        spark.drop_partition('assets',  {'timestamp': 100})
+
+        # 10. create table with partition
         spark.create_table("historical_categories",
                            like="categories",
                            partition_by={"tstamp": "double"},
                            external=True)
-        # 10. describe table
+        # 11. describe table
         data = spark.get_table_schema("historical_categories")
         assert_that(data,
                     has_entries('partition', is_(['tstamp']),
                                 'tstamp', 'double'))
 
-        # 11. create groups table
+        # 12. create groups table
         columns = OrderedDict()
         columns['id'] = 'INT'
         columns['name'] = 'STRING'
@@ -200,11 +203,11 @@ class TestSpark(SparkLayerTest):
         source = spark.hive.createDataFrame(cols, schema=groups_schema)
         spark.insert_into("groups", source, True)
 
-        # 12. coverage select
+        # 13. coverage select
         assert_that(spark.select_from("unfound", "id", True),
                     is_(none()))
 
-        # 13. drop table
+        # 14. drop table
         spark.drop_table('categories_like')
         spark.drop_table('not_found')
 
