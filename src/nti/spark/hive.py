@@ -91,14 +91,15 @@ def overwrite_table(source, target, spark=None):
 @interface.implementer(IHiveTable)
 class HiveTable(object):
 
-    def __init__(self, database, table_name, overwrite=True):
+    def __init__(self, database, table_name, overwrite=True, external=False):
         self.database = database
+        self.external = external
         self.overwrite = overwrite
         self.table_name = table_name
 
     def create_table_like(self, like, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
-        return spark.create_table(self.table_name, like=like, external=True)
+        return spark.create_table(self.table_name, like=like, external=self.external)
 
     def write_to_hive(self, new_frame, spark=None):
         # create temp frame
