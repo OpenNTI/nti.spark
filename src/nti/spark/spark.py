@@ -27,7 +27,6 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 from nti.schema.schema import SchemaConfigured
 
 from nti.spark import PARTITION_KEY
-from nti.spark import DEFAULT_LOCATION
 from nti.spark import DEFAULT_LOG_LEVEL
 from nti.spark import PARITION_INFORMATION
 from nti.spark import DEFAULT_STORAGE_FORMAT
@@ -124,17 +123,15 @@ class SparkInstance(SchemaConfigured):
 @interface.implementer(IHiveSparkInstance)
 class HiveSparkInstance(SparkInstance):
 
-    def __init__(self, master, app_name,
-                 location=DEFAULT_LOCATION, log_level=DEFAULT_LOG_LEVEL):
+    def __init__(self, master, app_name, location=None, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
-        self.location = DEFAULT_LOCATION if location is None else location
+        self.location = location
 
     @Lazy
     def conf(self):
         result = super(HiveSparkInstance, self).conf
         # pylint: disable=no-member
         result.set("spark.sql.catalogImplementation", "hive")
-        # result.set("spark.scheduler.mode", "FAIR")
         return result
 
     @Lazy
@@ -234,8 +231,8 @@ class HiveSparkInstance(SparkInstance):
                 create_query += " PARTITIONED BY (%s)" % _columns_as_str(partition_by)
         # always store as parquet file
         create_query += " STORED AS %s" % storage
-        if external:
-            location = name if not self.location else "%s/%s" % (self.location, name)
+        if external and self.location:
+            location = "%s/%s" % (self.location, name)
             create_query += " LOCATION '%s'" % location
         # pylint: disable=unused-variable
         __traceback_info__ = create_query

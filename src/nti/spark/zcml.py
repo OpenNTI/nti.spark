@@ -23,8 +23,6 @@ from zope.schema import Choice
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
-from nti.spark import DEFAULT_LOCATION
-
 from nti.spark.interfaces import ISparkInstance
 from nti.spark.interfaces import IHiveSparkInstance
 
@@ -71,7 +69,7 @@ class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     """
     location = fields.TextLine(title=u"Hive data location",
                                required=False,
-                               default=DEFAULT_LOCATION)
+                               default=None)
 
 
 def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
@@ -85,7 +83,7 @@ def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
 
 
 def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark App",
-                              location=DEFAULT_LOCATION, log_level=FATAL_LEVEL):
+                              location=None, log_level=FATAL_LEVEL):
     factory = functools.partial(HiveSparkInstance,
                                 master=master,
                                 app_name=app_name,
