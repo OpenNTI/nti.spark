@@ -231,8 +231,8 @@ class HiveSparkInstance(SparkInstance):
                 create_query += " PARTITIONED BY (%s)" % _columns_as_str(partition_by)
         # always store as parquet file
         create_query += " STORED AS %s" % storage
-        if external and self.location:
-            location = "%s/%s" % (self.location, name)
+        if external:
+            location = name if not self.location else "%s/%s" % (self.location, name)
             create_query += " LOCATION '%s'" % location
         # pylint: disable=unused-variable
         __traceback_info__ = create_query
