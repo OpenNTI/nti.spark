@@ -91,7 +91,7 @@ def overwrite_table(source, target, spark=None):
 @interface.implementer(IHiveTable)
 class HiveTable(object):
 
-    def __init__(self, database, table_name, overwrite=True, external=False):
+    def __init__(self, database, table_name, overwrite=True, external=True):
         self.database = database
         self.external = external
         self.overwrite = overwrite
