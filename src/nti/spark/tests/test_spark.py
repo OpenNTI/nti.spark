@@ -46,6 +46,9 @@ from nti.spark.interfaces import IHiveTimeIndexed
 from nti.spark.interfaces import IHiveSparkInstance
 from nti.spark.interfaces import IHiveTimeIndexedHistoric
 
+from nti.spark.mixins import IndexedMixin
+from nti.spark.mixins import IndexedHistoricalMixin
+
 from nti.spark.schema import to_pyspark_schema
 
 from nti.spark.tests import SparkLayerTest
@@ -120,6 +123,37 @@ class TestSpark(SparkLayerTest):
         write_to_historical(self.table_name, self.historic_name, 300, spark)
         assert_that(historc_table,
                     has_property('timestamps', is_([300, 200])))
+
+    def check_indexed_table(self, spark):
+        current_table = "db.bleach"
+        historical_table = "db.historical_bleach"
+
+        class Historical(IndexedHistoricalMixin):
+
+            def current(self):
+                return Current(TestSpark.database, current_table)
+
+        class Current(IndexedMixin):
+
+            def historical(self):
+                return Historical(TestSpark.database, historical_table)
+
+        current = Current(self.database, current_table)
+        historical = Historical(self.database, historical_table)
+
+        data = [(118465,), (118300,)]
+        result_rdd = spark.context.parallelize(data)
+        result_frame = spark.hive.createDataFrame(result_rdd, self.schema)
+        current.update(result_frame, 123456)
+
+        data = [(118300,), (118465,), (118475,), (118485,)]
+        result_rdd = spark.context.parallelize(data)
+        result_frame = spark.hive.createDataFrame(result_rdd, self.schema)
+        current.update(result_frame, 123457)
+
+        data_frame = historical.unarchive(123456, spark=spark)
+        assert_that(data_frame.collect(),
+                    has_length(2))
 
     def check_spark(self, spark):
         # 1. Verify and validate
@@ -210,6 +244,9 @@ class TestSpark(SparkLayerTest):
         # 14. drop table
         spark.drop_table('categories_like')
         spark.drop_table('not_found')
+
+    def test_mixins(self):
+        self.check_indexed_table(self.spark())
 
     def test_spark(self):
         spark = self.spark()
