@@ -44,7 +44,7 @@ from nti.spark.interfaces import ISparkContext
 from nti.spark.interfaces import ISparkSession
 from nti.spark.interfaces import IHiveTimeIndexed
 from nti.spark.interfaces import IHiveSparkInstance
-from nti.spark.interfaces import IHiveTimeIndexedHistoric
+from nti.spark.interfaces import IHiveTimeIndexedHistorical
 from nti.spark.interfaces import IArchivableHiveTimeIndexed
 from nti.spark.interfaces import IArchivableHiveTimeIndexedHistorical
 
@@ -108,9 +108,9 @@ class TestSpark(SparkLayerTest):
         historc_table = HiveTimeIndexedHistoric(self.database,
                                                 self.historic_name)
         assert_that(historc_table,
-                    validly_provides(IHiveTimeIndexedHistoric))
+                    validly_provides(IHiveTimeIndexedHistorical))
         assert_that(historc_table,
-                    verifiably_provides(IHiveTimeIndexedHistoric))
+                    verifiably_provides(IHiveTimeIndexedHistorical))
 
         data_frame = historc_table.partition(200)
         assert_that(data_frame, is_(none()))
