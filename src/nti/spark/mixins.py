@@ -9,11 +9,14 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from zope import component
+from zope import interface
 
 from nti.spark import TIMESTAMP
 
 from nti.spark.interfaces import IDataFrame
 from nti.spark.interfaces import IHiveSparkInstance
+from nti.spark.interfaces import IArchivableHiveTimeIndexed
+from nti.spark.interfaces import IArchivableHiveTimeIndexedHistorical
 
 from nti.spark.hive import LIT_FUNC
 
@@ -26,7 +29,8 @@ from nti.spark.hive import write_to_historical
 logger = __import__('logging').getLogger(__name__)
 
 
-class IndexedMixin(HiveTimeIndexed):
+@interface.implementer(IArchivableHiveTimeIndexed)
+class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
     
     def historical(self):
         raise NotImplementedError()
@@ -52,10 +56,11 @@ class IndexedMixin(HiveTimeIndexed):
 
     def update(self, new_groups, timestamp=None):  # pylint: disable=arguments-differ
         self.archive()
-        super(IndexedMixin, self).update(new_groups, timestamp)
+        super(ABSArchivableHiveTimeIndexed, self).update(new_groups, timestamp)
 
 
-class IndexedHistoricalMixin(HiveTimeIndexedHistoric):
+@interface.implementer(IArchivableHiveTimeIndexedHistorical)
+class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
 
     def current(self):
         raise NotImplementedError()

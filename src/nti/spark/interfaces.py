@@ -59,6 +59,7 @@ class ISparkInstance(interface.Interface):
     An object encapsulating both a Spark Context
     and its attached Spark Session.
     """
+
     spark = Object(ISparkContext,
                    title=u"Spark Context")
 
@@ -102,7 +103,7 @@ class IHiveSparkInstance(ISparkInstance):
         If there is, return the list of those attributes
         """
 
-    def create_table(name, partition_by=None, columns=None, like=None, 
+    def create_table(name, partition_by=None, columns=None, like=None,
                      external=False, storage='ORC'):
         """
         Create a hive table
@@ -132,7 +133,7 @@ class IHiveSparkInstance(ISparkInstance):
         :type name: str
         :type columns: dict
         """
-    
+
     def select_from(table, columns=None):
         """
         Return a dataframe with the table data
@@ -190,7 +191,7 @@ class IHiveTimeIndexed(IHiveTable):
     timestamp = Int(title=u"Timestamp of current load",
                     required=False,
                     default=None)
-    
+
     def update(new_frame, timestamp=None):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
@@ -200,9 +201,9 @@ class IHiveTimeIndexed(IHiveTable):
         """
 
 
-class IHiveTimeIndexedHistoric(IHiveTable):
+class IHiveTimeIndexedHistorical(IHiveTable):
     """
-    Interfface marking a class:`IHiveTable` as being
+    Interface marking a class:`IHiveTable` as being
     indexed by a timestamp and keeping historic logs
     of previous events
     """
@@ -219,4 +220,31 @@ class IHiveTimeIndexedHistoric(IHiveTable):
 
         :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
+        """
+IHiveTimeIndexedHistoric = IHiveTimeIndexedHistorical  # BWC
+
+
+class IArchivableHiveTimeIndexed(IHiveTable):
+
+    def historical():
+        """
+        Return the class:`.IArchivableHiveTimeIndexedHistorical` that holds historical data
+        """
+
+    def archive():
+        """
+        Archive this table
+        """
+
+
+class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
+
+    def current():
+        """
+        Return the class:`.IArchivableHiveTimeIndexed` that holds current values
+        """
+
+    def unarchive(self, timestamp, archive=True):
+        """
+        Unarvhive the values from the partition specified by the time stamp
         """
