@@ -44,10 +44,12 @@ from nti.spark.interfaces import ISparkContext
 from nti.spark.interfaces import ISparkSession
 from nti.spark.interfaces import IHiveTimeIndexed
 from nti.spark.interfaces import IHiveSparkInstance
-from nti.spark.interfaces import IHiveTimeIndexedHistoric
+from nti.spark.interfaces import IHiveTimeIndexedHistorical
+from nti.spark.interfaces import IArchivableHiveTimeIndexed
+from nti.spark.interfaces import IArchivableHiveTimeIndexedHistorical
 
-from nti.spark.mixins import IndexedMixin
-from nti.spark.mixins import IndexedHistoricalMixin
+from nti.spark.mixins import ABSArchivableHiveTimeIndexed
+from nti.spark.mixins import ABSArchivableHiveTimeIndexedHistorical
 
 from nti.spark.schema import to_pyspark_schema
 
@@ -106,9 +108,9 @@ class TestSpark(SparkLayerTest):
         historc_table = HiveTimeIndexedHistoric(self.database,
                                                 self.historic_name)
         assert_that(historc_table,
-                    validly_provides(IHiveTimeIndexedHistoric))
+                    validly_provides(IHiveTimeIndexedHistorical))
         assert_that(historc_table,
-                    verifiably_provides(IHiveTimeIndexedHistoric))
+                    verifiably_provides(IHiveTimeIndexedHistorical))
 
         data_frame = historc_table.partition(200)
         assert_that(data_frame, is_(none()))
@@ -128,18 +130,27 @@ class TestSpark(SparkLayerTest):
         current_table = "db.bleach"
         historical_table = "db.historical_bleach"
 
-        class Historical(IndexedHistoricalMixin):
+        class Historical(ABSArchivableHiveTimeIndexedHistorical):
 
             def current(self):
                 return Current(TestSpark.database, current_table)
 
-        class Current(IndexedMixin):
+        class Current(ABSArchivableHiveTimeIndexed):
 
             def historical(self):
                 return Historical(TestSpark.database, historical_table)
 
         current = Current(self.database, current_table)
+        assert_that(current,
+                    validly_provides(IArchivableHiveTimeIndexed))
+        assert_that(current,
+                    verifiably_provides(IArchivableHiveTimeIndexed))
+
         historical = Historical(self.database, historical_table)
+        assert_that(historical,
+                    validly_provides(IArchivableHiveTimeIndexedHistorical))
+        assert_that(historical,
+                    verifiably_provides(IArchivableHiveTimeIndexedHistorical))
 
         data = [(118465,), (118300,)]
         result_rdd = spark.context.parallelize(data)
