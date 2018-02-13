@@ -54,9 +54,9 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         # clean up
         spark.hive.dropTempTable('new_data')
 
-    def update(self, new_groups, timestamp=None):  # pylint: disable=arguments-differ
+    def update(self, new_data, timestamp=None):  # pylint: disable=arguments-differ
         self.archive()
-        super(ABSArchivableHiveTimeIndexed, self).update(new_groups, timestamp)
+        super(ABSArchivableHiveTimeIndexed, self).update(new_data, timestamp)
 
 
 @interface.implementer(IArchivableHiveTimeIndexedHistorical)
