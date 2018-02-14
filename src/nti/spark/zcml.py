@@ -23,10 +23,8 @@ from zope.schema import Choice
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
-from nti.spark.interfaces import ISparkInstance
 from nti.spark.interfaces import IHiveSparkInstance
 
-from nti.spark.spark import SparkInstance
 from nti.spark.spark import HiveSparkInstance
 
 ALL_LEVEL = u'ALL'
@@ -70,16 +68,6 @@ class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     location = fields.TextLine(title=u"Hive data location",
                                required=False,
                                default=None)
-
-
-def registerSparkInstance(_context, master=u"local", app_name=u"Spark App",
-                          log_level=FATAL_LEVEL):
-    factory = functools.partial(SparkInstance,
-                                master=master,
-                                app_name=app_name,
-                                log_level=log_level)
-
-    utility(_context, provides=ISparkInstance, factory=factory)
 
 
 def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark App",

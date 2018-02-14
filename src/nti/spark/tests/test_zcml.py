@@ -16,26 +16,9 @@ import shutil
 
 from zope import component
 
-from nti.spark.interfaces import ISparkInstance
 from nti.spark.interfaces import IHiveSparkInstance
 
 import nti.testing.base
-
-SPARK_ZCML_STRING = u"""
-<configure xmlns="http://namespaces.zope.org/zope"
-    xmlns:zcml="http://namespaces.zope.org/zcml"
-    xmlns:spark="http://nextthought.com/ntp/spark"
-    i18n_domain='nti.spark'>
-
-    <include package="zope.component" />
-    <include package="nti.spark" />
-
-    <include package="." file="meta.zcml" />
-
-    <spark:registerSparkInstance app_name="MainSpark App" />
-
-</configure>
-"""
 
 HIVESPARK_ZCML_STRING = u"""
 <configure xmlns="http://namespaces.zope.org/zope"
@@ -61,12 +44,6 @@ class TestZcml(nti.testing.base.ConfiguringTestBase):
         shutil.rmtree(os.path.join(os.getcwd(), 'home'), True)
         shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
         shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
-
-    def test_spark_registration(self):
-        self.configure_string(SPARK_ZCML_STRING)
-        spark = component.queryUtility(ISparkInstance)
-        assert_that(spark, is_not(none()))
-        spark.close()
 
     def test_hive_spark_registration(self):
         self.configure_string(HIVESPARK_ZCML_STRING)
