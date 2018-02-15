@@ -31,7 +31,7 @@ logger = __import__('logging').getLogger(__name__)
 
 @interface.implementer(IArchivableHiveTimeIndexed)
 class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
-    
+
     def historical(self):
         raise NotImplementedError()
 
@@ -68,7 +68,7 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
     def unarchive(self, timestamp, archive=True, spark=None):
         current = self.current()
         if archive:
-            current.archive() # archive
+            current.archive()  # archive
         data_frame = self.partition(timestamp, spark)
         if data_frame is not None:
             current.update(data_frame, timestamp)
