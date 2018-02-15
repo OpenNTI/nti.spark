@@ -12,7 +12,7 @@ from __future__ import absolute_import
 DEFAULT_LOG_LEVEL = u'ALL'
 
 #: Default user data location
-DEFAULT_LOCATION = u'/user/hive/warehouse'
+DEFAULT_LOCATION = u'hive-warehouse'
 
 #: Partion key
 PARTITION_KEY = u"partition"
@@ -21,16 +21,16 @@ PARTITION_KEY = u"partition"
 PARITION_INFORMATION = u"# Partition Information"
 
 #: Timestamp Column
-TIMESTAMP = u"tstamp"
+TIMESTAMP = "tstamp"
 
 #: Timestamp Column Type
-TIMESTAMP_TYPE = u'bigint'
+TIMESTAMP_TYPE = 'bigint'
 
 #: ORC Storage format
-ORC = u'ORC'
+ORC = 'ORC'
 
 #: Parquet storage format
-PARQUET = u'PARQUET'
+PARQUET = 'PARQUET'
 
 #: Default storage format
 DEFAULT_STORAGE_FORMAT = ORC
