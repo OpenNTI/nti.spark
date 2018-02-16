@@ -1,6 +1,6 @@
-===================
+===========
  nti.spark
-===================
+===========
 
 .. image:: https://travis-ci.org/NextThought/nti.spark.svg?branch=master
     :target: https://travis-ci.org/NextThought/nti.spark
