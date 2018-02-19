@@ -250,7 +250,7 @@ class TestSpark(SparkLayerTest):
         spark.insert_into("groups", source, True)
 
         # 13. coverage select
-        df = spark.select_from("unfound", "id", True)
+        df = spark.select_from("unfound", "id", True, True)
         assert_that(df, verifiably_provides(IDataFrame))
         assert_that(df.count(), is_(0))
 

@@ -236,7 +236,7 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         Archive this table
         """
 
-    def update(new_frame, timestamp=None, archive=True): 
+    def update(new_frame, timestamp=None, archive=True):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
 
@@ -244,6 +244,7 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         :param timestamp: The timestamp
         :param archive: Archive stored data
         """
+
 
 class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
 
