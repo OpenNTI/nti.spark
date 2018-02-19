@@ -39,6 +39,7 @@ from nti.spark.hive import HiveTimeIndexedHistoric
 from nti.spark.hive import overwrite_table
 from nti.spark.hive import write_to_historical
 
+from nti.spark.interfaces import IDataFrame
 from nti.spark.interfaces import IHiveContext
 from nti.spark.interfaces import ISparkContext
 from nti.spark.interfaces import ISparkSession
@@ -249,8 +250,9 @@ class TestSpark(SparkLayerTest):
         spark.insert_into("groups", source, True)
 
         # 13. coverage select
-        assert_that(spark.select_from("unfound", "id", True),
-                    is_(none()))
+        df = spark.select_from("unfound", "id", True)
+        assert_that(df, verifiably_provides(IDataFrame))
+        assert_that(df.count(), is_(0))
 
         # 14. drop table
         spark.drop_table('categories_like')
