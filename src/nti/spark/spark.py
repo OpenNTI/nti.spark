@@ -18,6 +18,8 @@ from pyspark.conf import SparkConf
 from pyspark.sql import HiveContext
 from pyspark.sql import SparkSession
 
+from pyspark.sql.types import StructType
+
 from zope import interface
 
 from zope.cachedescriptors.property import Lazy
@@ -126,6 +128,10 @@ class HiveSparkInstance(SparkInstance):
     def __init__(self, master, app_name, location=None, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
         self.location = location
+
+    def _empty_dataframe(self):
+        schema = StructType([])
+        return self.hive.createDataFrame(self.spark.emptyRDD(), schema)
 
     @Lazy
     def conf(self):
@@ -264,7 +270,7 @@ class HiveSparkInstance(SparkInstance):
             logger.exception("Error while executing select statement '%s'",
                              __traceback_info__)
             result = None
-        return result
+        return result if result is not None else self._empty_dataframe()
 
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
