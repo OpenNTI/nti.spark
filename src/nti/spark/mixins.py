@@ -32,6 +32,8 @@ logger = __import__('logging').getLogger(__name__)
 @interface.implementer(IArchivableHiveTimeIndexed)
 class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
 
+    empty_frame = False
+
     def historical(self):
         raise NotImplementedError()
 
@@ -62,6 +64,8 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
 
 @interface.implementer(IArchivableHiveTimeIndexedHistorical)
 class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
+
+    empty_frame = False
 
     def current(self):
         raise NotImplementedError()
