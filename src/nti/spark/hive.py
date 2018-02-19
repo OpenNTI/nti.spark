@@ -91,6 +91,8 @@ def overwrite_table(source, target, spark=None):
 @interface.implementer(IHiveTable)
 class HiveTable(object):
 
+    empty_frame = True
+
     def __init__(self, database, table_name, overwrite=True, external=True):
         self.database = database
         self.external = external
@@ -121,7 +123,7 @@ class HiveTable(object):
     @property
     def rows(self):
         hive = component.getUtility(IHiveSparkInstance)
-        return hive.select_from(self.table_name)
+        return hive.select_from(self.table_name, None, False, self.empty_frame)
 
 
 class HiveTimeMixin(object):
