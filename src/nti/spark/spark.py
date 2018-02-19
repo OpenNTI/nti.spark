@@ -130,6 +130,7 @@ class HiveSparkInstance(SparkInstance):
         self.location = location
 
     def _empty_dataframe(self):
+        # pylint: disable=no-member
         schema = StructType([])
         return self.hive.createDataFrame(self.spark.emptyRDD(), schema)
 
@@ -258,7 +259,7 @@ class HiveSparkInstance(SparkInstance):
             result = self.hive.sql(query)
             return result
 
-    def select_from(self, table, columns=None, distinct=False):
+    def select_from(self, table, columns=None, distinct=False, empty_frame=False):
         select_param = ["%s" % c for c in columns or ()]
         select_param = ','.join(select_param) or '*'
         distinct_param = "" if not distinct else "DISTINCT"
@@ -270,7 +271,9 @@ class HiveSparkInstance(SparkInstance):
             logger.exception("Error while executing select statement '%s'",
                              __traceback_info__)
             result = None
-        return result if result is not None else self._empty_dataframe()
+        return (
+            result if result else (self._empty_dataframe() if empty_frame else None)
+        )
 
     def insert_into(self, table, source, overwrite=False):
         # If the source frame is empty, don't do anything
