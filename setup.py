@@ -56,6 +56,7 @@ setup(
     install_requires=[
         'setuptools',
         'isodate',
+        'nti.schema',
         'six',
         'zope.cachedescriptors',
         'zope.component',
