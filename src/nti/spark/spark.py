@@ -145,6 +145,11 @@ class HiveSparkInstance(SparkInstance):
     def hive(self):
         return HiveContext(self.spark)
 
+    def table_exists(self, table):
+        # pylint: disable=no-member
+        df = self.hive.sql("SHOW TABLES LIKE '" + table + "'")
+        return len(df.collect()) == 1 
+        
     def get_table_schema(self, table):
         # pylint: disable=no-member
         schema = {PARTITION_KEY: []}

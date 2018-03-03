@@ -210,6 +210,8 @@ class TestSpark(SparkLayerTest):
 
         # 6. create a simple like table
         spark.create_table("categories_like", like="categories")
+        assert_that(spark.table_exists("categories_like"), is_(True))
+        assert_that(spark.table_exists("other_categories"), is_(False))
 
         # 7. overwrite table
         overwrite_table("categories", "categories_like", spark)
