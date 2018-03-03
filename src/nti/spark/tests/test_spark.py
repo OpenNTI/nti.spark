@@ -183,6 +183,8 @@ class TestSpark(SparkLayerTest):
 
         # 2. create a database
         spark.create_database("orgsync", "home")
+        assert_that(spark.database_exists("orgsync"), is_(True))
+        assert_that(spark.database_exists("ourecomm"), is_(False))
 
         # 3. create initial table
         spark.create_table("categories",

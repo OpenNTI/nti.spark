@@ -145,6 +145,11 @@ class HiveSparkInstance(SparkInstance):
     def hive(self):
         return HiveContext(self.spark)
 
+    def database_exists(self, name):
+        # pylint: disable=no-member
+        df = self.hive.sql("SHOW DATABASES LIKE '" + name + "'")
+        return len(df.collect()) == 1 
+    
     def table_exists(self, table):
         # pylint: disable=no-member
         df = self.hive.sql("SHOW TABLES LIKE '" + table + "'")
