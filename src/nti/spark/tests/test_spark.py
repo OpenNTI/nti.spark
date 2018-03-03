@@ -212,7 +212,9 @@ class TestSpark(SparkLayerTest):
         spark.create_table("categories_like", like="categories")
         assert_that(spark.table_exists("categories_like"), is_(True))
         assert_that(spark.table_exists("other_categories"), is_(False))
-
+        # try to create again should be ok
+        spark.create_table("categories_like", like="categories")
+        
         # 7. overwrite table
         overwrite_table("categories", "categories_like", spark)
 
