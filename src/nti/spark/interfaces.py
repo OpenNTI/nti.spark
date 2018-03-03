@@ -79,6 +79,15 @@ class IHiveSparkInstance(ISparkInstance):
     hive = Object(IHiveContext,
                   title=u"Hive Context")
 
+    def database_exists(name):
+        """
+        Checks if a database with the specified name exists
+
+        :param name: Database name
+
+        :type name: str
+        """
+
     def create_database(name, location=None):
         """
         Create a Hive Database
@@ -88,6 +97,15 @@ class IHiveSparkInstance(ISparkInstance):
 
         :type name: str
         :type location: str
+        """
+
+    def table_exists(name):
+        """
+        Checks if a table with the specified name exists
+
+        :param name: Table name
+
+        :type name: str
         """
 
     def get_table_schema(table):
