@@ -47,10 +47,12 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
     def write_to_hive(self, new_data, spark=None):  # pylint: disable=arguments-differ
         # create database
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
-        spark.create_database(self.database)
+        if not spark.database_exists(self.database):
+            spark.create_database(self.database)
         #  create table
         new_data.createOrReplaceTempView("new_data")
-        self.create_table_like("new_data", spark)
+        if not spark.table_exists(self.table_name):
+            self.create_table_like("new_data", spark)
         # insert and overwrite data
         overwrite_table("new_data", self.table_name, spark)
         # clean up
@@ -83,13 +85,15 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
         assert IDataFrame.providedBy(data_frame), "Invalid DataFrame"
         # create database
         spark = component.getUtility(IHiveSparkInstance) if not spark else None
-        spark.create_database(self.database)
+        if not spark.database_exists(self.database):  # pragma: no cover
+            spark.create_database(self.database)
         # prepare dataframe
         timestamp = self.get_timestamp(timestamp)
         data_frame.createOrReplaceTempView("archive_data")
         data_frame = data_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
         # create table and insert
-        self.create_table_like("archive_data", spark)
+        if not spark.table_exists(self.table_name):
+            self.create_table_like("archive_data", spark)
         write_to_historical("archive_data", self.table_name, timestamp, spark)
         # clean up
         spark.hive.dropTempTable('archive_data')
