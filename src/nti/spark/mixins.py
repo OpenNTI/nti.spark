@@ -39,6 +39,7 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
 
     def reset(self, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        logger.warning("Dropping table %s", self.table_name)
         spark.drop_table(self.table_name)
 
     def archive(self):
