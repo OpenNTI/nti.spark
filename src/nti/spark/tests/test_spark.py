@@ -167,6 +167,10 @@ class TestSpark(SparkLayerTest):
         assert_that(data_frame.collect(),
                     has_length(2))
 
+        data = [(118425,), (118400,)]
+        result_rdd = spark.context.parallelize(data)
+        current.update(result_frame, 123458, reset=True)
+
     def check_spark(self, spark):
         # 1. Verify and validate
         assert_that(spark, validly_provides(IHiveSparkInstance))
@@ -216,7 +220,7 @@ class TestSpark(SparkLayerTest):
         assert_that(spark.table_exists("other_categories"), is_(False))
         # try to create again should be ok
         spark.create_table("categories_like", like="categories")
-        
+
         # 7. overwrite table
         overwrite_table("categories", "categories_like", spark)
 
