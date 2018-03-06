@@ -37,6 +37,10 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
     def historical(self):
         raise NotImplementedError()
 
+    def reset(self, spark=None):
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        spark.drop_table(self.table_name)
+
     def archive(self):
         rows = self.rows
         if rows is not None:
@@ -58,9 +62,11 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         # clean up
         spark.hive.dropTempTable('new_data')
 
-    def update(self, new_data, timestamp=None, archive=True):  # pylint: disable=arguments-differ
+    def update(self, new_data, timestamp=None, archive=True, reset=False):  # pylint: disable=arguments-differ
         if archive:
             self.archive()
+        if reset:
+            self.reset()
         super(ABSArchivableHiveTimeIndexed, self).update(new_data, timestamp)
 
 

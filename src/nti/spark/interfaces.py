@@ -254,13 +254,14 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         Archive this table
         """
 
-    def update(new_frame, timestamp=None, archive=True):  # pylint: disable=arguments-differ
+    def update(new_frame, timestamp=None, archive=True, reset=False):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
 
         :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
         :param archive: Archive stored data
+        :param reset: Drop table
         """
 
 
