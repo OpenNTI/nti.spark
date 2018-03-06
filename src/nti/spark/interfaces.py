@@ -248,6 +248,11 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         """
         Return the class:`.IArchivableHiveTimeIndexedHistorical` that holds historical data
         """
+    
+    def reset():
+        """
+        Reset/Drop this table
+        """
 
     def archive():
         """
