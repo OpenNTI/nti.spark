@@ -244,6 +244,10 @@ IHiveTimeIndexedHistoric = IHiveTimeIndexedHistorical  # BWC
 
 class IArchivableHiveTimeIndexed(IHiveTable):
 
+    timestamp = Int(title=u"Timestamp of current load",
+                    required=False,
+                    default=None)
+    
     def historical():
         """
         Return the class:`.IArchivableHiveTimeIndexedHistorical` that holds historical data
@@ -271,6 +275,12 @@ class IArchivableHiveTimeIndexed(IHiveTable):
 
 
 class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
+
+    timestamps = IndexedIterable(title=u"The past timestamps",
+                                 min_length=0,
+                                 required=False,
+                                 default=None,
+                                 value_type=Int(title=u"The id"))
 
     def current():
         """
