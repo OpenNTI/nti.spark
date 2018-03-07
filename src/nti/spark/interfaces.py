@@ -289,5 +289,5 @@ class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
 
     def unarchive(self, timestamp, archive=True):
         """
-        Unarvhive the values from the partition specified by the time stamp
+        Unarchive the values from the partition specified by the time stamp
         """
