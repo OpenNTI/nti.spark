@@ -229,8 +229,8 @@ class HiveSparkInstance(SparkInstance):
             # Convert column collections to query strings
             partition_cols_str = _columns_as_str(partition_cols)
             reg_cols_str = _columns_as_str({
-                x: like_schema[x] for x in like_schema.keys()
-                if x not in partition_cols.keys() and x != PARTITION_KEY
+                x: like_schema[x] for x in like_schema
+                if x not in partition_cols and x != PARTITION_KEY
             })
             create_query += " (%s)" % (reg_cols_str)
             if partition_by or partition_cols:
@@ -240,7 +240,7 @@ class HiveSparkInstance(SparkInstance):
             # check columns
             assert columns, "Must specify columns"
             # valdiate partition columns
-            if partition_by and set(partition_by.keys()).intersection(set(columns.keys())):
+            if partition_by and set(partition_by).intersection(set(columns)):
                 raise ValueError("Found duplicate column(s) in table definition")
             # add column to query
             create_query += " (%s)" % _columns_as_str(columns)
