@@ -16,6 +16,7 @@ from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
 from hamcrest import has_property
+from hamcrest import contains_inanyorder
 
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
@@ -239,12 +240,13 @@ class TestSpark(SparkLayerTest):
         # 10. create table with partition
         spark.create_table("historical_categories",
                            like="categories",
-                           partition_by={"tstamp": "double"},
+                           partition_by={"tstamp": "double",
+                                         "grouping": "string"},
                            external=True)
         # 11. describe table
         data = spark.get_table_schema("historical_categories")
         assert_that(data,
-                    has_entries('partition', is_(['tstamp']),
+                    has_entries('partition', contains_inanyorder('grouping','tstamp'),
                                 'tstamp', 'double'))
 
         # 12. create groups table
