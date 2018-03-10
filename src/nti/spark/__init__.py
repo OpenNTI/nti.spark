@@ -12,7 +12,7 @@ from __future__ import absolute_import
 DEFAULT_LOG_LEVEL = u'ALL'
 
 #: Default user data location
-DEFAULT_LOCATION = u'hive-warehouse'
+DEFAULT_LOCATION = u'/user/hive/warehouse'
 
 #: Partion key
 PARTITION_KEY = u"partition"
