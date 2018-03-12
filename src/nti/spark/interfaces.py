@@ -192,11 +192,12 @@ class IHiveTable(interface.Interface):
                   required=False,
                   default=None)
 
-    def update(new_frame):
+    def update(new_frame, overwrite=True):
         """
         Archive the data in the frame
 
-        :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
+        :param new_frame: The class:`nti.spark.interfaces.IDataFrame` to archive
+        :param overwrite: Overwrite table flag
         """
 
 
@@ -210,12 +211,13 @@ class IHiveTimeIndexed(IHiveTable):
                     required=False,
                     default=None)
 
-    def update(new_frame, timestamp=None):  # pylint: disable=arguments-differ
+    def update(new_frame, timestamp=None, overwrite=True):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
 
         :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
+        :param overwrite: Overwrite table flag
         """
 
 
@@ -232,12 +234,13 @@ class IHiveTimeIndexedHistorical(IHiveTable):
                                  default=None,
                                  value_type=Int(title=u"The id"))
 
-    def update(new_frame, timestamp=None):  # pylint: disable=arguments-differ
+    def update(new_frame, timestamp=None, overwrite=True):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
 
         :param new_frame:  The class:`nti.spark.interfaces.IDataFrame` to archive
         :param timestamp: The timestamp
+        :param overwrite: Overwrite table flag
         """
 IHiveTimeIndexedHistoric = IHiveTimeIndexedHistorical  # BWC
 
@@ -263,7 +266,7 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         Archive this table
         """
 
-    def update(new_frame, timestamp=None, archive=True, reset=False):  # pylint: disable=arguments-differ
+    def update(new_frame, timestamp=None, archive=True, reset=False, ovewrrite=True):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
 
@@ -271,6 +274,7 @@ class IArchivableHiveTimeIndexed(IHiveTable):
         :param timestamp: The timestamp
         :param archive: Archive stored data
         :param reset: Drop table
+        :param overwrite: Overwrite table flag
         """
 
 
@@ -287,7 +291,11 @@ class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
         Return the class:`.IArchivableHiveTimeIndexed` that holds current values
         """
 
-    def unarchive(self, timestamp, archive=True):
+    def unarchive(self, timestamp, archive=True, ovewrrite=True):
         """
         Unarchive the values from the partition specified by the time stamp
+        
+        :param timestamp: The timestamp
+        :param archive: Archive stored data
+        :param overwrite: Overwrite table flag
         """

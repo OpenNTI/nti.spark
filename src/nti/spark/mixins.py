@@ -23,7 +23,7 @@ from nti.spark.hive import LIT_FUNC
 from nti.spark.hive import HiveTimeIndexed
 from nti.spark.hive import HiveTimeIndexedHistoric
 
-from nti.spark.hive import overwrite_table
+from nti.spark.hive import insert_into_table
 from nti.spark.hive import write_to_historical
 
 logger = __import__('logging').getLogger(__name__)
@@ -49,7 +49,7 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
             historical.update(rows, self.timestamp)
     _archive = archive  # BWC
 
-    def write_to_hive(self, new_data, spark=None):  # pylint: disable=arguments-differ
+    def write_to_hive(self, new_data, overwrite=True, spark=None):  # pylint: disable=arguments-differ
         # create database
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         if not spark.database_exists(self.database):
@@ -58,17 +58,17 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         new_data.createOrReplaceTempView("new_data")
         if not spark.table_exists(self.table_name):
             self.create_table_like("new_data", spark)
-        # insert and overwrite data
-        overwrite_table("new_data", self.table_name, spark)
+        # insert data
+        insert_into_table("new_data", self.table_name, overwrite, spark)
         # clean up
         spark.hive.dropTempTable('new_data')
 
-    def update(self, new_data, timestamp=None, archive=True, reset=False):  # pylint: disable=arguments-differ
+    def update(self, new_data, timestamp=None, archive=True, reset=False, overwrite=True):  # pylint: disable=arguments-differ
         if archive:
             self.archive()
         if reset:
             self.reset()
-        super(ABSArchivableHiveTimeIndexed, self).update(new_data, timestamp)
+        super(ABSArchivableHiveTimeIndexed, self).update(new_data, timestamp, overwrite)
 
 
 @interface.implementer(IArchivableHiveTimeIndexedHistorical)
@@ -79,13 +79,13 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
     def current(self):
         raise NotImplementedError()
 
-    def unarchive(self, timestamp, archive=True, spark=None):
+    def unarchive(self, timestamp, archive=True, overwrite=True, spark=None):
         current = self.current()
         if archive:
             current.archive()  # archive
         data_frame = self.partition(timestamp, spark)
         if data_frame is not None:
-            current.update(data_frame, timestamp)
+            current.update(data_frame, timestamp, overwrite)
         return data_frame
 
     def update(self, data_frame, timestamp=None, spark=None):  # pylint: disable=arguments-differ

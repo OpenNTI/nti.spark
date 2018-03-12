@@ -93,17 +93,16 @@ class HiveTable(object):
 
     empty_frame = True
 
-    def __init__(self, database, table_name, overwrite=True, external=True):
+    def __init__(self, database, table_name, external=True):
         self.database = database
         self.external = external
-        self.overwrite = overwrite
         self.table_name = table_name
 
     def create_table_like(self, like, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name, like=like, external=self.external)
 
-    def write_to_hive(self, new_frame, spark=None):
+    def write_to_hive(self, new_frame, overwrite=True, spark=None):
         # create temp frame
         new_frame.createOrReplaceTempView("new_frame")
         # create database
@@ -113,12 +112,12 @@ class HiveTable(object):
         self.create_table_like("new_frame", spark)
         # insert new data
         spark.insert_into(self.table_name, new_frame,
-                          overwrite=self.overwrite)
+                          overwrite=overwrite)
         spark.hive.dropTempTable('new_frame')
 
-    def update(self, new_frame):
+    def update(self, new_frame, overwrite=True):
         assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
-        self.write_to_hive(new_frame)
+        self.write_to_hive(new_frame, overwrite)
 
     @property
     def rows(self):
@@ -131,13 +130,13 @@ class HiveTimeMixin(object):
     def get_timestamp(self, timestamp=None):
         return get_timestamp(timestamp)
 
-    def update(self, new_frame, timestamp=None):  # pylint: disable=arguments-differ
+    def update(self, new_frame, timestamp=None, overwrite=True):  # pylint: disable=arguments-differ
         assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
         # add timestamp to frame
         timestamp = self.get_timestamp(timestamp)
         frame = new_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
         # write frame
-        return super(HiveTimeMixin, self).update(frame)
+        return super(HiveTimeMixin, self).update(frame, overwrite)
 
 
 @interface.implementer(IHiveTimeIndexed)
