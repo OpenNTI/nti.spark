@@ -44,8 +44,8 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
 
     def archive(self):
         rows = self.rows
-        if rows is not None:
-            historical = self.historical()
+        historical = self.historical()
+        if rows is not None and historical is not None:
             historical.update(rows, self.timestamp)
     _archive = archive  # BWC
 
@@ -81,7 +81,7 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
 
     def unarchive(self, timestamp, archive=True, overwrite=True, spark=None):
         current = self.current()
-        if archive:
+        if archive and current is not None:
             current.archive()  # archive
         data_frame = self.partition(timestamp, spark)
         if data_frame is not None:
