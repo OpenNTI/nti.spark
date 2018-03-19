@@ -22,8 +22,10 @@ from nti.spark.scripts import get_timestamp
 from nti.spark.scripts import create_context
 from nti.spark.scripts import configure_logging
 
+from nti.spark.scripts.tests import BaseTestMixin
 
-class TestScripts(unittest.TestCase):
+
+class TestScripts(BaseTestMixin, unittest.TestCase):
 
     def test_invalid_dir(self):
         assert_that(calling(create_context).with_args('/tmp/__not_valid_dir__'),
