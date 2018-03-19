@@ -1,0 +1,17 @@
+<!-- -*- mode: nxml -*- -->
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+			xmlns:spark="http://nextthought.com/ntp/spark">
+
+	<include package="zope.component" file="meta.zcml" />
+	<include package="zope.security" file="meta.zcml" />
+	<include package="zope.component" />
+	<include package="zope.security" />
+
+	<!-- Spark -->
+	<include package="nti.spark" file="meta.zcml" />
+	<spark:registerHiveSparkInstance app_name="OrgSync Spark"
+									 location="spark-warehouse" />
+
+</configure>
