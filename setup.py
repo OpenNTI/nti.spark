@@ -62,6 +62,8 @@ setup(
         'zope.cachedescriptors',
         'zope.component',
         'zope.configuration',
+        'zope.dottedname',
+        'zope.exceptions',
         'zope.interface',
         'zope.schema',
         'zope.security',
