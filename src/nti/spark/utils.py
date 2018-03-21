@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import numbers
 from datetime import date
 from datetime import datetime
 
@@ -21,7 +22,7 @@ def parse_date(data):
         for func in (isodate.parse_datetime, isodate.parse_date, float):
             try:
                 transformed = func(data)
-                if isinstance(transformed, float):
+                if isinstance(transformed, numbers.Number):
                     return datetime.fromtimestamp(transformed)
                 elif isinstance(transformed, datetime):
                     return transformed
