@@ -28,6 +28,7 @@ class TestUtils(unittest.TestCase):
         assert_that(parse_date(now), is_(datetime))
         assert_that(parse_date(int(now)), is_(datetime))
         assert_that(parse_date(str(now)), is_(datetime))
+        assert_that(parse_date('19731130'), is_(datetime))
         assert_that(parse_date('1973-11-30'), is_(datetime))
         assert_that(parse_date('1973-11-30T00:00:00Z'), is_(datetime))
         assert_that(calling(parse_date).with_args('invalid_date'),
