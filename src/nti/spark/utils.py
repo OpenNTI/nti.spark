@@ -14,6 +14,8 @@ from datetime import datetime
 
 import isodate
 
+import pytz
+
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -31,3 +33,8 @@ def parse_date(data):
             except Exception:  # pylint: disable=broad-except
                 pass
         raise ValueError("Invalid date")
+
+
+def parse_date_as_utc(data, is_dst=False):
+    data = parse_date(data)
+    return pytz.utc.localize(data, is_dst) if data is not None else None
