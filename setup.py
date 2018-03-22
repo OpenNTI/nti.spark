@@ -58,6 +58,7 @@ setup(
         'isodate',
         'nti.schema',
         'pyspark',
+        'pytz',
         'six',
         'zope.cachedescriptors',
         'zope.component',

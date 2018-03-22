@@ -18,7 +18,7 @@ import unittest
 from datetime import datetime
 
 from nti.spark.utils import parse_date
-
+from nti.spark.utils import parse_date_as_utc
 
 class TestUtils(unittest.TestCase):
 
@@ -33,3 +33,6 @@ class TestUtils(unittest.TestCase):
         assert_that(parse_date('1973-11-30T00:00:00Z'), is_(datetime))
         assert_that(calling(parse_date).with_args('invalid_date'),
                     raises(ValueError))
+
+    def test_parse_date_as_utz(self):
+        assert_that(parse_date_as_utc('19731130'), is_(datetime))
