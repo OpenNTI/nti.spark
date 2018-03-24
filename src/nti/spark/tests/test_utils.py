@@ -17,10 +17,15 @@ import time
 import unittest
 from datetime import datetime
 
+from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
 from nti.spark.utils import parse_date_as_utc
 
 class TestUtils(unittest.TestCase):
+
+    def test_csv_mode(self):
+        assert_that(csv_mode(), is_("DROPMALFORMED"))
+        assert_that(csv_mode(True), is_('FAILFAST'))
 
     def test_parse_date(self):
         now = time.time()
