@@ -19,6 +19,10 @@ import pytz
 logger = __import__('logging').getLogger(__name__)
 
 
+def csv_mode(strict=False):
+    return "DROPMALFORMED" if not strict else "FAILFAST"
+
+
 def parse_date(data):
     if data is not None:
         for func in (isodate.parse_datetime, isodate.parse_date, float):
