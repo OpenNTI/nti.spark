@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import time
+from datetime import date
 
 from pyspark.sql import functions
 
@@ -28,7 +29,8 @@ logger = __import__('logging').getLogger(__name__)
 
 
 def get_timestamp(timestamp=None):
-    timestamp = time.time() if timestamp is None else timestamp
+    if timestamp is None:
+        timestamp = time.mktime(date.today().timetuple())
     return int(timestamp)
 
 
