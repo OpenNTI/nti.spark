@@ -95,7 +95,7 @@ class HiveTable(object):
 
     empty_frame = True
 
-    def __init__(self, database, table_name, external=True):
+    def __init__(self, database, table_name, external=False):
         self.database = database
         self.external = external
         self.table_name = table_name
@@ -162,7 +162,7 @@ class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name,
                                   like=like,
-                                  external=True,
+                                  external=self.external,
                                   partition_by={TIMESTAMP: TIMESTAMP_TYPE})
 
     def partition(self, timestamp, spark=None):
