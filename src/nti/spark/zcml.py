@@ -77,5 +77,4 @@ def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark Ap
                                 app_name=app_name,
                                 location=location,
                                 log_level=log_level)
-
     utility(_context, provides=IHiveSparkInstance, factory=factory)
