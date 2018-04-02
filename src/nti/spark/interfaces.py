@@ -121,6 +121,15 @@ class IHiveSparkInstance(ISparkInstance):
         If there is, return the list of those attributes
         """
 
+    def drop_table(name):
+        """
+        Drop the specified table is exists
+        
+        :param name: Table name
+
+        :type name: str
+        """
+     
     def create_table(name, partition_by=None, columns=None, like=None,
                      external=False, storage='ORC'):
         """
