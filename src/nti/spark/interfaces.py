@@ -300,7 +300,7 @@ class IArchivableHiveTimeIndexedHistorical(IHiveTimeIndexedHistoric):
         Return the class:`.IArchivableHiveTimeIndexed` that holds current values
         """
 
-    def unarchive(self, timestamp, archive=True, ovewrrite=True):
+    def unarchive(timestamp, archive=True, ovewrrite=True):
         """
         Unarchive the values from the partition specified by the time stamp
         
