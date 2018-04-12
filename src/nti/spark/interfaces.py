@@ -243,6 +243,13 @@ class IHiveTimeIndexedHistorical(IHiveTable):
                                  default=None,
                                  value_type=Int(title=u"The id"))
 
+    def partition(timestamp):
+        """
+        Return the data associated for the specified timestamp
+        
+        :param timestamp: The timestamp
+        """
+    
     def update(new_frame, timestamp=None, overwrite=True):  # pylint: disable=arguments-differ
         """
         Archive the data in the frame
