@@ -118,8 +118,10 @@ class SparkInstance(SchemaConfigured):
         # pylint: disable=no-member
         if 'session' in self.__dict__:
             self.session.stop()
+            del self.__dict__['session']
         if 'spark' in self.__dict__:
             self.spark.stop()
+            del self.__dict__['spark']
 
 
 @interface.implementer(IHiveSparkInstance)
