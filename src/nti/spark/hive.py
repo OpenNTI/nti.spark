@@ -100,6 +100,10 @@ class HiveTable(object):
         self.external = external
         self.table_name = table_name
 
+    @property
+    def __name__(self):
+        return self.table_name
+
     def create_table_like(self, like, spark=None):
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         return spark.create_table(self.table_name, like=like, external=self.external)
