@@ -127,6 +127,10 @@ class TestSpark(SparkLayerTest):
         write_to_historical(self.table_name, self.historic_name, 300, spark)
         assert_that(historc_table,
                     has_property('timestamps', is_([300, 200])))
+        
+        historc_table.drop_partition(300, spark)
+        assert_that(historc_table,
+                    has_property('timestamps', is_([200])))
 
     def check_indexed_table(self, spark):
         current_table = "db.bleach"
