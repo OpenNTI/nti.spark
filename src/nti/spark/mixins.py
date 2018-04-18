@@ -46,6 +46,7 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         rows = self.rows
         historical = self.historical()
         if rows is not None and historical is not None:
+            historical.drop_partition(self.timestamp)
             historical.update(rows, self.timestamp)
     _archive = archive  # BWC
 
