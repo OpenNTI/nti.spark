@@ -150,13 +150,16 @@ class HiveSparkInstance(SparkInstance):
     def database_exists(self, name):
         # pylint: disable=no-member
         df = self.hive.sql("SHOW DATABASES LIKE '" + name + "'")
-        return len(df.collect()) == 1 
-    
+        return len(df.collect()) == 1
+
     def table_exists(self, table):
         # pylint: disable=no-member
+        idx = table.find('.')  # check for db
+        if idx > 0:
+            self.hive.sql("USE " + table[:idx])
         df = self.hive.sql("SHOW TABLES LIKE '" + table + "'")
-        return len(df.collect()) == 1 
-        
+        return len(df.collect()) == 1
+
     def get_table_schema(self, table):
         # pylint: disable=no-member
         schema = {PARTITION_KEY: []}
