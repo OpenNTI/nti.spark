@@ -156,7 +156,9 @@ class HiveSparkInstance(SparkInstance):
         # pylint: disable=no-member
         idx = table.find('.')  # check for db
         if idx > 0:
-            self.hive.sql("USE " + table[:idx])
+            database = table[:idx]
+            table = table[idx + 1:]
+            self.hive.sql("USE " + database)
         df = self.hive.sql("SHOW TABLES LIKE '" + table + "'")
         return len(df.collect()) == 1
 
