@@ -170,7 +170,7 @@ class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
                                   partition_by={TIMESTAMP: TIMESTAMP_TYPE})
 
     def partition(self, timestamp, spark=None):
-        timestamp = int(timestamp)
+        timestamp = self.get_timestamp(timestamp)
         spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         query = "SELECT * FROM %s WHERE %s=%s" % (self.table_name, TIMESTAMP, timestamp)
         __traceback_info__ = query
@@ -182,6 +182,13 @@ class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
                              __traceback_info__)
             result = None
         return result
+
+    def drop_partition(self, timestamp, spark=None):
+        timestamp = self.get_timestamp(timestamp)
+        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        partition = {TIMESTAMP:timestamp}
+        if spark.table_exists(self.table_name):
+            spark.drop_partition(self.table_name, partition)
 
     @property
     def timestamps(self):
