@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import time
 import numbers
 from datetime import date
 from datetime import datetime
@@ -42,3 +43,11 @@ def parse_date(data):
 def parse_date_as_utc(data, is_dst=False):
     data = parse_date(data)
     return pytz.utc.localize(data, is_dst) if data is not None else None
+
+
+def get_timestamp(timestamp=None):
+    if timestamp is None:
+        timestamp = time.mktime(date.today().timetuple())
+    elif isinstance(timestamp, (date, datetime)):
+        timestamp = time.mktime(timestamp.timetuple())
+    return int(timestamp)

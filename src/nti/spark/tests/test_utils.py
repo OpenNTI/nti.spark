@@ -15,10 +15,12 @@ from hamcrest import assert_that
 
 import time
 import unittest
+from datetime import date
 from datetime import datetime
 
 from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
+from nti.spark.utils import get_timestamp
 from nti.spark.utils import parse_date_as_utc
 
 class TestUtils(unittest.TestCase):
@@ -41,3 +43,8 @@ class TestUtils(unittest.TestCase):
 
     def test_parse_date_as_utz(self):
         assert_that(parse_date_as_utc('19731130'), is_(datetime))
+        
+    def test_get_timestamp(self):
+        assert_that(get_timestamp(None), is_(int))
+        assert_that(get_timestamp(date.today()), is_(int))
+        assert_that(get_timestamp(datetime.today()), is_(int))

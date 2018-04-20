@@ -5,9 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-import time
-from datetime import date
-
 from pyspark.sql import functions
 
 from zope import component
@@ -22,16 +19,13 @@ from nti.spark.interfaces import IHiveTimeIndexed
 from nti.spark.interfaces import IHiveSparkInstance
 from nti.spark.interfaces import IHiveTimeIndexedHistoric
 
+from nti.spark.utils import get_timestamp
+
 #: pyspark.sql.functions.lit
 LIT_FUNC = getattr(functions, 'lit')
 
 logger = __import__('logging').getLogger(__name__)
 
-
-def get_timestamp(timestamp=None):
-    if timestamp is None:
-        timestamp = time.mktime(date.today().timetuple())
-    return int(timestamp)
 
 
 def write_to_historical(source, target, timestamp=None, spark=None):
