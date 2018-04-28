@@ -82,12 +82,13 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
 
     def unarchive(self, timestamp, archive=True, overwrite=True, spark=None):
         current = self.current()
-        if archive and current is not None:
-            current.archive()  # archive
-        data_frame = self.partition(timestamp, spark)
-        if data_frame is not None:
-            current.update(data_frame, timestamp, overwrite)
-        return data_frame
+        if current is not None:
+            if archive:
+                current.archive() 
+            data_frame = self.partition(timestamp, spark)
+            if data_frame is not None:
+                current.update(data_frame, timestamp, overwrite)
+            return data_frame
 
     def update(self, data_frame, timestamp=None, spark=None):  # pylint: disable=arguments-differ
         assert IDataFrame.providedBy(data_frame), "Invalid DataFrame"
