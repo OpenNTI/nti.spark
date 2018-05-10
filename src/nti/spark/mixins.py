@@ -11,14 +11,10 @@ from __future__ import absolute_import
 from zope import component
 from zope import interface
 
-from nti.spark import TIMESTAMP
-
 from nti.spark.interfaces import IDataFrame
 from nti.spark.interfaces import IHiveSparkInstance
 from nti.spark.interfaces import IArchivableHiveTimeIndexed
 from nti.spark.interfaces import IArchivableHiveTimeIndexedHistorical
-
-from nti.spark.hive import LIT_FUNC
 
 from nti.spark.hive import HiveTimeIndexed
 from nti.spark.hive import HiveTimeIndexedHistoric
@@ -104,7 +100,6 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
         timestamp = self.get_timestamp(timestamp)
         data_frame.createOrReplaceTempView(temp_name)
         try:
-            data_frame = data_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
             # create table and insert
             if not spark.table_exists(self.table_name):
                 self.create_table_like(temp_name, spark)
