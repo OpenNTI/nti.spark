@@ -45,7 +45,8 @@ def write_to_historical(source, target, timestamp=None, spark=None):
     # copy into historical table
     table = spark.hive.table(target)
     columns = list(table.columns)
-    columns.remove(TIMESTAMP)
+    if TIMESTAMP in columns:
+        columns.remove(TIMESTAMP)
     # execute query
     query = ["INSERT INTO TABLE %s" % target,
              "PARTITION (%s=%s) " % (TIMESTAMP, timestamp),
