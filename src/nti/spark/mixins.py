@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import time
+
 from zope import component
 from zope import interface
 
@@ -52,7 +54,7 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         if not spark.database_exists(self.database):
             spark.create_database(self.database)
         #  create table
-        temp_name = self.table_name + "_new_data"
+        temp_name = "new_data_%s" % int(time.time())
         new_data.createOrReplaceTempView(temp_name)
         try:
             if not spark.table_exists(self.table_name):
@@ -96,7 +98,7 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
         if not spark.database_exists(self.database):  # pragma: no cover
             spark.create_database(self.database)
         # prepare dataframe
-        temp_name = self.table_name + "_archive_data"
+        temp_name = "archive_data_%s" % int(time.time())
         timestamp = self.get_timestamp(timestamp)
         data_frame.createOrReplaceTempView(temp_name)
         try:
