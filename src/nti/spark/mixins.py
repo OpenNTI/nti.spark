@@ -56,13 +56,16 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
         if not spark.database_exists(self.database):
             spark.create_database(self.database)
         #  create table
-        new_data.createOrReplaceTempView("new_data")
-        if not spark.table_exists(self.table_name):
-            self.create_table_like("new_data", spark)
-        # insert data
-        insert_into_table("new_data", self.table_name, overwrite, spark)
-        # clean up
-        spark.hive.dropTempTable('new_data')
+        temp_name = self.table_name + "_new_data"
+        new_data.createOrReplaceTempView(temp_name)
+        try:
+            if not spark.table_exists(self.table_name):
+                self.create_table_like(temp_name, spark)
+            # insert data
+            insert_into_table(temp_name, self.table_name, overwrite, spark)
+        finally:
+            # clean up
+            spark.hive.dropTempTable(temp_name)
 
     def update(self, new_data, timestamp=None, archive=True, reset=False, overwrite=True):  # pylint: disable=arguments-differ
         if archive:
@@ -97,12 +100,15 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
         if not spark.database_exists(self.database):  # pragma: no cover
             spark.create_database(self.database)
         # prepare dataframe
+        temp_name = self.table_name + "_archive_data"
         timestamp = self.get_timestamp(timestamp)
-        data_frame.createOrReplaceTempView("archive_data")
-        data_frame = data_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
-        # create table and insert
-        if not spark.table_exists(self.table_name):
-            self.create_table_like("archive_data", spark)
-        write_to_historical("archive_data", self.table_name, timestamp, spark)
-        # clean up
-        spark.hive.dropTempTable('archive_data')
+        data_frame.createOrReplaceTempView(temp_name)
+        try:
+            data_frame = data_frame.withColumn(TIMESTAMP, LIT_FUNC(timestamp))
+            # create table and insert
+            if not spark.table_exists(self.table_name):
+                self.create_table_like(temp_name, spark)
+            write_to_historical(temp_name, self.table_name, timestamp, spark)
+        finally:
+            # clean up
+            spark.hive.dropTempTable(temp_name)
