@@ -5,13 +5,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# pylint: disable=protected-access,too-many-public-methods,arguments-differ
+# pylint: disable=protected-access,too-many-public-methods,arguments-differ,inherit-non-class
 
 import os
 import shutil
 import tempfile
 
 from zope import component
+from zope import interface
 
 from zope.component.hooks import setHooks
 
@@ -63,3 +64,11 @@ import unittest
 class SparkLayerTest(unittest.TestCase):
 
     layer = SharedConfiguringTestLayer
+
+
+class ITestTable(interface.Interface):
+    pass
+
+@interface.implementer(ITestTable)
+class TestTable(object):
+    table_name = 'test_table'

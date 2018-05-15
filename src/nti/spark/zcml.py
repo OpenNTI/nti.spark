@@ -12,7 +12,9 @@ from __future__ import absolute_import
 
 import functools
 
-from zope import interface
+from zope.interface import Interface
+
+from zope.interface.interface import InterfaceClass
 
 from zope.component.zcml import utility
 
@@ -23,6 +25,7 @@ from zope.schema import Choice
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
+from nti.spark.interfaces import IHiveTable
 from nti.spark.interfaces import IHiveSparkInstance
 
 from nti.spark.spark import HiveSparkInstance
@@ -43,7 +46,7 @@ LOG_LEVELS_VOCABULARY = \
 logger = __import__('logging').getLogger(__name__)
 
 
-class IRegisterSparkInstance(interface.Interface):
+class IRegisterSparkInstance(Interface):
     """
     Provides a schema for registering a spark Context
     """
@@ -78,3 +81,33 @@ def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark Ap
                                 location=location,
                                 log_level=log_level)
     utility(_context, provides=IHiveSparkInstance, factory=factory)
+
+
+class IRegisterHiveTable(Interface):
+    """
+    Interface representing a registration of a new hive table
+    """
+
+    factory = fields.GlobalObject(title=u"The table to register",
+                                  required=True)
+
+    provides = fields.GlobalObject(title=u"The interface the factory provides",
+                                   required=True)
+
+
+def registerHiveTable(_context, factory, provides=None):
+    """
+    Register a new hive table
+    """
+    assert (type(provides) is InterfaceClass)
+
+    # Create the Report object to be used as a subscriber
+    component = factory()
+    assert provides.providedBy(component)
+
+    # register as named hive table utility
+    utility(_context, component=component,
+            provides=IHiveTable, name=component.table_name)
+
+    # register as nameless utilitiy
+    utility(_context, component=component, provides=provides)
