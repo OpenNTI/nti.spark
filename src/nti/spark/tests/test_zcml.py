@@ -16,7 +16,10 @@ import shutil
 
 from zope import component
 
+from nti.spark.interfaces import IHiveTable
 from nti.spark.interfaces import IHiveSparkInstance
+
+from nti.spark.tests import ITestTable
 
 import nti.testing.base
 
@@ -33,6 +36,9 @@ HIVESPARK_ZCML_STRING = u"""
 
     <spark:registerHiveSparkInstance app_name="HiveSpark App" />
 
+    <spark:registerHiveTable factory=".tests.TestTable"
+                             provides=".tests.ITestTable" />
+
 </configure>
 """
 
@@ -45,8 +51,14 @@ class TestZcml(nti.testing.base.ConfiguringTestBase):
         shutil.rmtree(os.path.join(os.getcwd(), 'metastore_db'), True)
         shutil.rmtree(os.path.join(os.getcwd(), 'spark-warehouse'), True)
 
-    def test_hive_spark_registration(self):
+    def test_registrations(self):
         self.configure_string(HIVESPARK_ZCML_STRING)
+        # test spark
         spark = component.queryUtility(IHiveSparkInstance)
         assert_that(spark, is_not(none()))
         spark.close()
+        # test table
+        table = component.queryUtility(ITestTable)
+        assert_that(table, is_not(none()))
+        table = component.queryUtility(IHiveTable, "test_table")
+        assert_that(table, is_not(none()))
