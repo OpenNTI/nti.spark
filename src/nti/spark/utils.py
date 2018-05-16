@@ -47,7 +47,7 @@ def parse_date_as_utc(data, is_dst=False):
 
 def get_timestamp(timestamp=None):
     if timestamp is None:
-        timestamp = time.mktime(date.today().timetuple())
-    elif isinstance(timestamp, (date, datetime)):
+        timestamp = date.today()
+    if isinstance(timestamp, (date, datetime)):
         timestamp = time.mktime(timestamp.timetuple())
     return int(timestamp)

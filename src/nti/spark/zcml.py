@@ -42,7 +42,6 @@ LOG_LEVELS = (ALL_LEVEL, INFO_LEVEL, WARN_LEVEL, DEBUG_LEVEL,
 LOG_LEVELS_VOCABULARY = \
     SimpleVocabulary([SimpleTerm(_x) for _x in LOG_LEVELS])
 
-
 logger = __import__('logging').getLogger(__name__)
 
 
