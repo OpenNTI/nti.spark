@@ -27,6 +27,9 @@ LIT_FUNC = getattr(functions, 'lit')
 logger = __import__('logging').getLogger(__name__)
 
 
+def get_spark(spark=None):
+    return component.getUtility(IHiveSparkInstance) if not spark else spark
+
 
 def write_to_historical(source, target, timestamp=None, spark=None):
     """
@@ -40,8 +43,8 @@ def write_to_historical(source, target, timestamp=None, spark=None):
     :type target: str
     :type timestamp: int
     """
+    spark = get_spark(spark)
     timestamp = get_timestamp(timestamp)
-    spark = component.getUtility(IHiveSparkInstance) if not spark else spark
     # copy into historical table
     table = spark.hive.table(target)
     columns = list(table.columns)
@@ -66,7 +69,7 @@ def insert_into_table(source, target, overwrite=False, spark=None):
     :type target: str
     :type overwrite: bool
     """
-    spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+    spark = get_spark(spark)
     table = spark.hive.table(target)
     columns = ','.join(table.columns)
     overwrite = 'OVERWRITE' if overwrite else 'INTO'
@@ -100,14 +103,14 @@ class HiveTable(object):
         return self.table_name
 
     def create_table_like(self, like, spark=None):
-        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        spark = get_spark(spark)
         return spark.create_table(self.table_name, like=like, external=self.external)
 
     def write_to_hive(self, new_frame, overwrite=True, spark=None):
         # create temp frame
         new_frame.createOrReplaceTempView("new_frame")
         # create database
-        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        spark = get_spark(spark)
         spark.create_database(self.database)
         # create table
         self.create_table_like("new_frame", spark)
@@ -122,7 +125,7 @@ class HiveTable(object):
 
     @property
     def rows(self):
-        hive = component.getUtility(IHiveSparkInstance)
+        hive = get_spark()
         return hive.select_from(self.table_name, None, False, self.empty_frame)
 
 
@@ -145,7 +148,7 @@ class HiveTimeIndexed(HiveTimeMixin, HiveTable):
 
     @property
     def timestamp(self):
-        hive = component.getUtility(IHiveSparkInstance)
+        hive = get_spark()
         query_result = hive.select_from(self.table_name,
                                         columns=(TIMESTAMP,),
                                         distinct=True)
@@ -158,15 +161,15 @@ class HiveTimeIndexed(HiveTimeMixin, HiveTable):
 class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
 
     def create_table_like(self, like, spark=None):
-        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
+        spark = get_spark(spark)
         return spark.create_table(self.table_name,
                                   like=like,
                                   external=self.external,
                                   partition_by={TIMESTAMP: TIMESTAMP_TYPE})
 
     def partition(self, timestamp, spark=None):
+        spark = get_spark(spark)
         timestamp = self.get_timestamp(timestamp)
-        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
         query = "SELECT * FROM %s WHERE %s=%s" % (self.table_name, TIMESTAMP, timestamp)
         __traceback_info__ = query
         try:
@@ -179,15 +182,15 @@ class HiveTimeIndexedHistoric(HiveTimeMixin, HiveTable):
         return result
 
     def drop_partition(self, timestamp, spark=None):
+        spark = get_spark(spark)
         timestamp = self.get_timestamp(timestamp)
-        spark = component.getUtility(IHiveSparkInstance) if not spark else spark
-        partition = {TIMESTAMP:timestamp}
+        partition = {TIMESTAMP: timestamp}
         if spark.table_exists(self.table_name):
             spark.drop_partition(self.table_name, partition)
 
     @property
     def timestamps(self):
-        hive = component.getUtility(IHiveSparkInstance)
+        hive = get_spark()
         query_result = hive.select_from(self.table_name,
                                         columns=(TIMESTAMP,),
                                         distinct=True)
