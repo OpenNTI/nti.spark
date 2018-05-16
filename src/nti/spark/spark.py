@@ -158,7 +158,8 @@ class HiveSparkInstance(SparkInstance):
         if idx > 0:
             database = table[:idx]
             table = table[idx + 1:]
-            self.hive.sql("USE " + database)
+            if self.database_exists(database):
+                self.hive.sql("USE " + database)
         df = self.hive.sql("SHOW TABLES LIKE '" + table + "'")
         return len(df.collect()) == 1
 
