@@ -94,7 +94,7 @@ class IRegisterHiveTable(Interface):
                                    required=True)
 
 
-def registerHiveTable(_context, factory, provides=None):
+def registerHiveTable(_context, factory, provides):
     """
     Register a new hive table
     """
