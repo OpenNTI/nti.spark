@@ -20,6 +20,7 @@ from zope.configuration import xmlconfig
 from zope.dottedname import resolve as dottedname
 
 from nti.spark.utils import parse_date
+from nti.spark.utils import get_timestamp as make_timestamp
 
 DATASERVER_ETC_DIR = 'DATASERVER_ETC_DIR'
 DEFAULT_LOG_FORMAT = '[%(asctime)-15s] [%(name)s] %(levelname)s: %(message)s'
@@ -72,9 +73,9 @@ def create_context(env_dir=None, package="nti.spark",
 def get_timestamp(timestamp=None, source=None, current=False):
     # parse date
     tstamp = parse_date(timestamp)
-    timestamp = time.mktime(tstamp.timetuple()) if tstamp is not None else None
+    timestamp = make_timestamp(tstamp) if tstamp is not None else None
     # check for current
-    tstamp = int(time.time()) if current else timestamp
+    tstamp = make_timestamp(time.time()) if current else timestamp
     # check for source
     tstamp = os.path.getmtime(source) if source and not tstamp else tstamp
-    return int(tstamp) if tstamp is not None else None
+    return make_timestamp(tstamp) if tstamp is not None else None
