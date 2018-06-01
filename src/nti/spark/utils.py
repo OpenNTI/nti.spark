@@ -24,13 +24,19 @@ def csv_mode(strict=False):
     return "DROPMALFORMED" if not strict else "FAILFAST"
 
 
+def fromtimestamp(data):
+    if isinstance(data, numbers.Number):
+        data = datetime.fromtimestamp(data)
+    return data
+
+
 def parse_date(data):
     if data is not None:
         for func in (isodate.parse_datetime, isodate.parse_date, float):
             try:
                 transformed = func(data)
                 if isinstance(transformed, numbers.Number):
-                    return datetime.fromtimestamp(transformed)
+                    return fromtimestamp(transformed)
                 elif isinstance(transformed, datetime):
                     return transformed
                 elif isinstance(transformed, date):
