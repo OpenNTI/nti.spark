@@ -174,7 +174,7 @@ def build_exclude_list(example, exclusions):
 
 def save_to_config(filename, spark, config_path, exclusions=None):
     """
-    Save the config in a simplejson file at a given location
+    Save the config in a json file at a given location
     """
     example = construct_schema_example(filename, spark)
     if exclusions:

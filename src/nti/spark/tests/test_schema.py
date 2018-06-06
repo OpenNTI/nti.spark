@@ -159,7 +159,7 @@ class TestSchema(SparkLayerTest):
     def test_file(self):
         path = os.path.join(os.path.dirname(__file__),
                             "data", "test_file.csv")
-        return "file://" + path
+        return path
 
     def test_construct(self):
         spark = component.getUtility(IHiveSparkInstance).hive
