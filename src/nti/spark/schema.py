@@ -102,9 +102,8 @@ def construct_schema_example(filename, spark):
     Constructs a single example with all filled in
     columns for a given file
     """
-
-    df = spark.read.csv(filename, header=True, inferSchema=True)
     result = {}
+    df = spark.read.csv(filename, header=True, inferSchema=True)
     result[EXAMPLE] = {c: None for c in df.columns}
     result[NULLABILITY] = {c: False for c in df.columns}
     for row in df.toLocalIterator():
@@ -149,9 +148,9 @@ def build_exclude_list(example, exclusions):
     Pattern matches on column names to determine if any should
     be excluded on read
     """
+    result = []
     values = example[EXAMPLE]
     exclusions = exclusions.split(',')
-    result = []
     for item in exclusions:
         try:
             star_pow = item.index('*')
