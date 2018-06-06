@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import codecs
+from collections import Mapping
 
 from pyspark.sql.types import DateType
 from pyspark.sql.types import LongType
@@ -148,8 +149,8 @@ def build_exclude_list(example, exclusions):
     Pattern matches on column names to determine if any should
     be excluded on read
     """
-    exclusions = exclusions.split(',')
     values = example[EXAMPLE]
+    exclusions = exclusions.split(',')
     result = []
     for item in exclusions:
         try:
@@ -166,7 +167,7 @@ def build_exclude_list(example, exclusions):
                 search_begin = item[:star_pow]
                 search_end = item[star_pow + 1:]
                 cols = [
-                    x for x in values.keys() if x.startswith(search_begin) and x.endswith(search_end)
+                    x for x in values if x.startswith(search_begin) and x.endswith(search_end)
                 ]
                 result.extend(cols)
         except ValueError:
@@ -192,7 +193,7 @@ def load_from_config(config_path, cases=None):
     Allow an optional cases for special cases
     that cannot be handled automatically
     """
-
+    assert cases is None or isinstance(cases, Mapping)
     with codecs.open(config_path, 'r', encoding='utf-8') as fp:
         example = simplejson.load(fp)
     fp.close()
@@ -200,7 +201,7 @@ def load_from_config(config_path, cases=None):
     if cases:
         nullability = example[NULLABILITY]
         unchanged_fields = [
-            f for f in config_schema.fields if f.name not in cases.keys()
+            f for f in config_schema.fields if f.name not in cases
         ]
         config_schema.fields = unchanged_fields
         for key, value in cases.items():
