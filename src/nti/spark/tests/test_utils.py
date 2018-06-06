@@ -11,19 +11,29 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import raises
 from hamcrest import calling
+from hamcrest import has_entries
 from hamcrest import assert_that
 
+from zope import component
+
+import os
 import time
 import unittest
 from datetime import date
 from datetime import datetime
 
+from nti.spark.interfaces import IHiveSparkInstance
+
 from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
 from nti.spark.utils import get_timestamp
 from nti.spark.utils import parse_date_as_utc
+from nti.spark.utils import construct_complete_example
 
-class TestUtils(unittest.TestCase):
+from nti.spark.tests import SparkLayerTest
+
+
+class TestUtils(SparkLayerTest):
 
     def test_csv_mode(self):
         assert_that(csv_mode(), is_("DROPMALFORMED"))
@@ -48,3 +58,17 @@ class TestUtils(unittest.TestCase):
         assert_that(get_timestamp(None), is_(int))
         assert_that(get_timestamp(date.today()), is_(int))
         assert_that(get_timestamp(datetime.today()), is_(int))
+
+    @property
+    def test_file(self):
+        path = os.path.join(os.path.dirname(__file__),
+                            "data", "test_file.csv")
+        return "file://" + path
+
+    def test_construct(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        result_dict = construct_complete_example(self.test_file, spark)
+        assert_that(result_dict, has_entries('COL1', 'TRUE',
+                                             'COL2', 'Austin',
+                                             'COL3', '468',
+                                             'COL4', None))

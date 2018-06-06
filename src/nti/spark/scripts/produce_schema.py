@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import json
 import argparse
 
 from zope import component
@@ -23,8 +24,15 @@ logger = __import__('logging').getLogger(__name__)
 def process_args(args=None):
     # parse arguments
     arg_parser = argparser.ArgumentParser(description="Produce schema config file for CSV")
+    arg_parser.add_argument('-f', '--file', help='File to produce schema')
+    arg_parser.add_argument('-e', '--exclude', help='List of patterns of column names to exclude on load')
+    arg_parser.add_argument('-o', '--out', help='Directory to write resulting config')
+    arg_parser.add_argument('-v', '--verbose', help="Verbose mode",
+                            action='store_true', dest='verbose')
+    arg_parser.add_argument('-d', '--env_dir', dest='env_dir',
+                            help=" Environment root directory")
     args = arg_parser.parse_args(args)
-    
+
     # configure logging
     configure_logging(debug=args.verbose)
 
@@ -34,6 +42,12 @@ def process_args(args=None):
     # validate
     spark = component.queryUtility(IHiveSparkInstance)
     assert spark is not None, "Must specify a valid Hive/Spark instane"
+
+    # Check file
+    assert args.file, "Must provide a file to read."
+
+    # Check out directory
+    assert args.out, "Must provide directory to write."
 
     # load
     try:
