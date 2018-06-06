@@ -18,5 +18,5 @@
 		<spark:registerHiveSparkInstance app_name="Spark APP"
 										 location="spark-warehouse" />
 	</configure>
-
+	
 </configure>

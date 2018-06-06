@@ -5,6 +5,7 @@ from setuptools import find_packages
 entry_points = {
     'console_scripts': [
         "nti_spark_drop_table = nti.spark.scripts.drop_table:main",
+        "nti_spark_schema_config = nti.spark.scripts.produce_schema:main"
     ],
 }
 
