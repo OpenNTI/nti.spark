@@ -28,7 +28,6 @@ from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
 from nti.spark.utils import get_timestamp
 from nti.spark.utils import parse_date_as_utc
-from nti.spark.utils import construct_complete_example
 
 from nti.spark.tests import SparkLayerTest
 
@@ -58,17 +57,3 @@ class TestUtils(SparkLayerTest):
         assert_that(get_timestamp(None), is_(int))
         assert_that(get_timestamp(date.today()), is_(int))
         assert_that(get_timestamp(datetime.today()), is_(int))
-
-    @property
-    def test_file(self):
-        path = os.path.join(os.path.dirname(__file__),
-                            "data", "test_file.csv")
-        return "file://" + path
-
-    def test_construct(self):
-        spark = component.getUtility(IHiveSparkInstance).hive
-        result_dict = construct_complete_example(self.test_file, spark)
-        assert_that(result_dict, has_entries('COL1', 'TRUE',
-                                             'COL2', 'Austin',
-                                             'COL3', '468',
-                                             'COL4', None))

@@ -15,6 +15,8 @@ from datetime import datetime
 
 import isodate
 
+from pyspark.sql import types
+
 import pytz
 
 logger = __import__('logging').getLogger(__name__)
@@ -57,19 +59,3 @@ def get_timestamp(timestamp=None):
     if isinstance(timestamp, (date, datetime)):
         timestamp = time.mktime(timestamp.timetuple())
     return int(timestamp)
-
-
-def construct_complete_example(filename, spark):
-    """
-    Constructs a single example with all filled in
-    columns for a given file
-    """
-    df = spark.read.csv(filename, header=True)
-    result = {c: None for c in df.columns}
-    for row in df.toLocalIterator():
-        if all([True if val is not None else False for val in result.values()]):
-            break
-        for c in df.columns:
-            if not result[c]:
-                result[c] = getattr(row, c)
-    return result
