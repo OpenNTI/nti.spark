@@ -179,7 +179,7 @@ class TestSchema(SparkLayerTest):
         schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
         assert_that(schema.fields, has_length(4))
 
-        # Test nested dictionaries 
+        # Test nested dictionaries
         example[EXAMPLE]["COL5"] = {"COL6": 6, "COL7": 'SomeString'}
         example[NULLABILITY]["COL5"] = False
         example[NULLABILITY]["COL6"] = False
