@@ -34,3 +34,12 @@ PARQUET = 'PARQUET'
 
 #: Default storage format
 DEFAULT_STORAGE_FORMAT = ORC
+
+#: Example JSON entry
+EXAMPLE = "example"
+
+#: Nullability JSON entry
+NULLABILITY = "nullability"
+
+#: Exlusion JSON entry
+EXCLUSIONS = "exclusions"

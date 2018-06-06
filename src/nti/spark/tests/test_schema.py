@@ -12,13 +12,20 @@ from hamcrest import none
 from hamcrest import is_not
 from hamcrest import has_length
 from hamcrest import assert_that
+from hamcrest import has_entries
 from hamcrest import has_property
 from hamcrest import has_properties
+
+import os
+import shutil
+import tempfile
 
 from pyspark.sql.types import LongType
 from pyspark.sql.types import ArrayType
 from pyspark.sql.types import StructType
+from pyspark.sql.types import TimestampType
 
+from zope import component
 from zope import interface
 
 from nti.schema.field import Int
@@ -34,7 +41,17 @@ from nti.schema.field import TextLine
 from nti.schema.field import IndexedIterable
 from nti.schema.field import DecodingValidTextLine as ValidTextLine
 
+from nti.spark import EXAMPLE
+from nti.spark import NULLABILITY
+
+from nti.spark.interfaces import IHiveSparkInstance
+
+from nti.spark.schema import infer_schema
+from nti.spark.schema import save_to_config
+from nti.spark.schema import load_from_config
 from nti.spark.schema import to_pyspark_schema
+from nti.spark.schema import build_exclude_list
+from nti.spark.schema import construct_schema_example
 
 from nti.spark.tests import SparkLayerTest
 
@@ -136,3 +153,45 @@ class TestSchema(SparkLayerTest):
         assert_that(field,
                     has_property('dataType',
                                  has_property('elementType', is_(LongType))))
+
+    @property
+    def test_file(self):
+        path = os.path.join(os.path.dirname(__file__),
+                            "data", "test_file.csv")
+        return path
+
+    def test_construct(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        result_dict = construct_schema_example(self.test_file, spark)
+        assert_that(result_dict[EXAMPLE], has_entries('COL1', True,
+                                                      'COL2', 'Austin',
+                                                      'COL3', 468,
+                                                      'COL4', None))
+        assert_that(result_dict[NULLABILITY], has_entries('COL1', True,
+                                                          'COL2', True,
+                                                          'COL3', True,
+                                                          'COL4', True))
+
+    def test_infer_schema(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        example = construct_schema_example(self.test_file, spark)
+        schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
+        assert_that(schema, has_length(4))
+
+    def test_exclude_list(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        example = construct_schema_example(self.test_file, spark)
+        exclude_list = build_exclude_list(example, "COL*")
+        assert_that(exclude_list, has_length(4))
+
+    def test_save_load_config(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, 'test.json')
+        try:
+            save_to_config(self.test_file, spark, path)
+            assert_that(os.path.exists(path), True)
+            schema = load_from_config(path, cases={"COL4": TimestampType()})
+            assert_that(schema.fields[-1].dataType, TimestampType())
+        finally:
+            shutil.rmtree(tmpdir)
