@@ -22,6 +22,7 @@ import tempfile
 
 from pyspark.sql.types import LongType
 from pyspark.sql.types import ArrayType
+from pyspark.sql.types import StringType
 from pyspark.sql.types import StructType
 from pyspark.sql.types import TimestampType
 
@@ -176,7 +177,24 @@ class TestSchema(SparkLayerTest):
         spark = component.getUtility(IHiveSparkInstance).hive
         example = construct_schema_example(self.test_file, spark)
         schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
-        assert_that(schema, has_length(4))
+        assert_that(schema.fields, has_length(4))
+
+        # Test nested dictionaries 
+        example[EXAMPLE]["COL5"] = {"COL6": 6, "COL7": 'SomeString'}
+        example[NULLABILITY]["COL5"] = False
+        example[NULLABILITY]["COL6"] = False
+        example[NULLABILITY]["COL7"] = False
+        schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
+        assert_that(schema.fields, has_length(5))
+        added_field = [f for f in schema.fields if f.name == "COL5"].pop()
+        assert_that(added_field.dataType.fields, has_length(2))
+
+        # Test list
+        example[EXAMPLE]["COL8"] = ['Austin', 'Graham']
+        example[NULLABILITY]["COL8"] = False
+        schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
+        added_field = [f for f in schema.fields if f.name == "COL8"].pop()
+        assert_that(added_field.dataType, ArrayType(StringType()))
 
     def test_exclude_list(self):
         spark = component.getUtility(IHiveSparkInstance).hive
