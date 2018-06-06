@@ -15,8 +15,6 @@ from datetime import datetime
 
 import isodate
 
-from pyspark.sql import types
-
 import pytz
 
 logger = __import__('logging').getLogger(__name__)

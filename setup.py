@@ -60,6 +60,7 @@ setup(
         'nti.schema',
         'pyspark',
         'pytz',
+        'simplejson',
         'six',
         'zope.cachedescriptors',
         'zope.component',
