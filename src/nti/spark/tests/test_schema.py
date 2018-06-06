@@ -23,6 +23,7 @@ import tempfile
 from pyspark.sql.types import LongType
 from pyspark.sql.types import ArrayType
 from pyspark.sql.types import StructType
+from pyspark.sql.types import TimestampType
 
 from zope import component
 from zope import interface
@@ -47,6 +48,7 @@ from nti.spark.interfaces import IHiveSparkInstance
 
 from nti.spark.schema import infer_schema
 from nti.spark.schema import save_to_config
+from nti.spark.schema import load_from_config
 from nti.spark.schema import to_pyspark_schema
 from nti.spark.schema import build_exclude_list
 from nti.spark.schema import construct_schema_example
@@ -161,9 +163,9 @@ class TestSchema(SparkLayerTest):
     def test_construct(self):
         spark = component.getUtility(IHiveSparkInstance).hive
         result_dict = construct_schema_example(self.test_file, spark)
-        assert_that(result_dict[EXAMPLE], has_entries('COL1', 'TRUE',
+        assert_that(result_dict[EXAMPLE], has_entries('COL1', True,
                                                       'COL2', 'Austin',
-                                                      'COL3', '468',
+                                                      'COL3', 468,
                                                       'COL4', None))
         assert_that(result_dict[NULLABILITY], has_entries('COL1', True,
                                                           'COL2', True,
@@ -182,12 +184,14 @@ class TestSchema(SparkLayerTest):
         exclude_list = build_exclude_list(example, "COL*")
         assert_that(exclude_list, has_length(4))
 
-    def test_save_config(self):
+    def test_save_load_config(self):
         spark = component.getUtility(IHiveSparkInstance).hive
         tmpdir = tempfile.mkdtemp()
         path = os.path.join(tmpdir, 'test.json')
         try:
             save_to_config(self.test_file, spark, path)
             assert_that(os.path.exists(path), True)
+            schema = load_from_config(path, cases={"COL4": TimestampType()})
+            assert_that(schema.fields[-1].dataType, TimestampType())
         finally:
             shutil.rmtree(tmpdir)

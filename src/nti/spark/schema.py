@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
 import json
 
 from pyspark.sql.types import DateType
@@ -19,6 +20,7 @@ from pyspark.sql.types import StringType
 from pyspark.sql.types import StructType
 from pyspark.sql.types import BooleanType
 from pyspark.sql.types import StructField
+from pyspark.sql.types import _infer_type
 from pyspark.sql.types import TimestampType
 
 from zope import schema
@@ -99,7 +101,7 @@ def construct_schema_example(filename, spark):
     columns for a given file
     """
     
-    df = spark.read.csv(filename, header=True)
+    df = spark.read.csv(filename, header=True, inferSchema=True)
     result = {}
     result[EXAMPLE] = {c: None for c in df.columns}
     result[NULLABILITY] = {c: False for c in df.columns}
@@ -113,30 +115,13 @@ def construct_schema_example(filename, spark):
     return result
 
 
-def infer_type(value):
-    """
-    Produce the correct pyspark type 
-    from the string value
-    """
-    try:
-        int(value)
-        return IntegerType()
-    except:
-        try:
-            float(value)
-            return DoubleType()
-        except:
-            try:
-                bool(value)
-                return BooleanType()
-            except:
-                pass
-    return StringType()
-
-
 def infer_schema(example, nullability=None):
     """
-    Infer the schema of a given example
+    Infer the schema of a given example.
+
+    This can easily be built off of in the case where
+    we're down to singular values and how we want to
+    treat them
     """
     if isinstance(example, dict):
         return StructType([StructField(key, 
@@ -152,7 +137,9 @@ def infer_schema(example, nullability=None):
                 raise ValueError("Cannot handle multi-type arrays.")
         return ArrayType(_type)
     else:
-        return infer_type(example)
+        if example is None:
+            return StringType()
+        return _infer_type(example)
 
 
 def build_exclude_list(example, exclusions):
@@ -194,3 +181,24 @@ def save_to_config(filename, spark, config_path, exclusions=None):
     fp = open(config_path, 'w')
     json.dump(example, fp)
     fp.close()
+
+
+def load_from_config(config_path, cases=None):
+    """
+    Load a schema from a config file
+
+    Allow an optional cases for special cases
+    that cannot be handled automatically
+    """
+
+    fp = open(config_path, 'r')
+    example = json.load(fp)
+    fp.close()
+    schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
+    if cases:
+        nullability = example[NULLABILITY]
+        unchanged_fields = [f for f in schema.fields if f.name not in cases.keys()]
+        schema.fields = unchanged_fields
+        for key, value in cases.iteritems():
+            schema.fields.append(StructField(key, value, nullability[key]))
+    return schema
