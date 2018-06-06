@@ -11,18 +11,11 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import raises
 from hamcrest import calling
-from hamcrest import has_entries
 from hamcrest import assert_that
 
-from zope import component
-
-import os
 import time
-import unittest
 from datetime import date
 from datetime import datetime
-
-from nti.spark.interfaces import IHiveSparkInstance
 
 from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
