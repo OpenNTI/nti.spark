@@ -9,7 +9,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
-import json
+import codecs
+import simplejson
 
 from pyspark.sql.types import DateType
 from pyspark.sql.types import LongType
@@ -173,14 +174,13 @@ def build_exclude_list(example, exclusions):
 
 def save_to_config(filename, spark, config_path, exclusions=None):
     """
-    Save the config in a json file at a given location
+    Save the config in a simplejson file at a given location
     """
     example = construct_schema_example(filename, spark)
     if exclusions:
         example[EXCLUSIONS] = build_exclude_list(example, exclusions)
-    fp = open(config_path, 'w')
-    json.dump(example, fp)
-    fp.close()
+    with codecs.open(config_path, 'w', encoding='utf-8') as fp:
+        simplejson.dump(example, fp)
 
 
 def load_from_config(config_path, cases=None):
@@ -191,8 +191,8 @@ def load_from_config(config_path, cases=None):
     that cannot be handled automatically
     """
 
-    fp = open(config_path, 'r')
-    example = json.load(fp)
+    with codecs.open(config_path, 'r', encoding='utf-8') as fp:
+        example = simplejson.load(fp)
     fp.close()
     schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
     if cases:
