@@ -8,9 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-import os
 import codecs
-import simplejson
+from collections import Mapping
 
 from pyspark.sql.types import DateType
 from pyspark.sql.types import LongType
@@ -23,6 +22,8 @@ from pyspark.sql.types import BooleanType
 from pyspark.sql.types import StructField
 from pyspark.sql.types import _infer_type
 from pyspark.sql.types import TimestampType
+
+import simplejson
 
 from zope import schema
 
@@ -101,7 +102,7 @@ def construct_schema_example(filename, spark):
     Constructs a single example with all filled in
     columns for a given file
     """
-    
+
     df = spark.read.csv(filename, header=True, inferSchema=True)
     result = {}
     result[EXAMPLE] = {c: None for c in df.columns}
@@ -125,18 +126,18 @@ def infer_schema(example, nullability=None):
     treat them
     """
     if isinstance(example, dict):
-        return StructType([StructField(key, 
-                           infer_schema(example[key], nullability), 
-                           nullability[key] if nullability else True)
-                           for key, value in example.iteritems()])
+        return StructType([StructField(key,
+                                       infer_schema(value, nullability),
+                                       nullability[key] if nullability else True)
+                           for key, value in example.items()])
     elif isinstance(example, list):
         if not example:
             raise ValueError("Cannot convert empty list.")
-        _type = infer_schema(example[0], nullability)
+        type_ = infer_schema(example[0], nullability)
         for item in example:
-            if infer_schema(item, nullability) != _type:
+            if infer_schema(item, nullability) != type_:
                 raise ValueError("Cannot handle multi-type arrays.")
-        return ArrayType(_type)
+        return ArrayType(type_)
     else:
         if example is None:
             return StringType()
@@ -148,8 +149,8 @@ def build_exclude_list(example, exclusions):
     Pattern matches on column names to determine if any should
     be excluded on read
     """
-    exclusions = exclusions.split(',')
     values = example[EXAMPLE]
+    exclusions = exclusions.split(',')
     result = []
     for item in exclusions:
         try:
@@ -165,7 +166,9 @@ def build_exclude_list(example, exclusions):
             else:
                 search_begin = item[:star_pow]
                 search_end = item[star_pow + 1:]
-                cols = [x for x in values.keys() if x.startswith(search_begin) and x.endswith(search_end)]
+                cols = [
+                    x for x in values if x.startswith(search_begin) and x.endswith(search_end)
+                ]
                 result.extend(cols)
         except ValueError:
             result.append(item)
@@ -190,15 +193,17 @@ def load_from_config(config_path, cases=None):
     Allow an optional cases for special cases
     that cannot be handled automatically
     """
-
+    assert cases is None or isinstance(cases, Mapping)
     with codecs.open(config_path, 'r', encoding='utf-8') as fp:
         example = simplejson.load(fp)
     fp.close()
-    schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
+    config_schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
     if cases:
         nullability = example[NULLABILITY]
-        unchanged_fields = [f for f in schema.fields if f.name not in cases.keys()]
-        schema.fields = unchanged_fields
-        for key, value in cases.iteritems():
-            schema.fields.append(StructField(key, value, nullability[key]))
-    return schema
+        unchanged_fields = [
+            f for f in config_schema.fields if f.name not in cases
+        ]
+        config_schema.fields = unchanged_fields
+        for key, value in cases.items():
+            config_schema.fields.append(StructField(key, value, nullability[key]))
+    return config_schema
