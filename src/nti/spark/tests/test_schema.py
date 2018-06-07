@@ -205,9 +205,6 @@ class TestSchema(SparkLayerTest):
         assert_that(exclude_list, has_length(1))
         exclude_list = build_exclude_list(example, "COL*1")
         assert_that(exclude_list, has_length(1))
-        # coverage
-        with self.assertRaises(ValueError):
-            build_exclude_list(example, "COL")
 
     def test_save_load_config(self):
         spark = component.getUtility(IHiveSparkInstance).hive
