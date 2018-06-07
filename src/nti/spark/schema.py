@@ -9,6 +9,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import codecs
+from datetime import date
+from datetime import datetime
 from collections import Mapping
 
 from pyspark.sql.types import DateType
@@ -170,6 +172,15 @@ def build_exclude_list(example, exclusions):
     return result
 
 
+def serialize_json(obj):  # pragma: no cover
+    """
+    Handle non auto-serializable objects
+    """
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError("Type %s is not JSON serializable" % type(obj))
+
+
 def save_to_config(filename, spark, config_path, exclusions=None):
     """
     Save the config in a json file at a given location
@@ -178,7 +189,7 @@ def save_to_config(filename, spark, config_path, exclusions=None):
     if exclusions:
         example[EXCLUSIONS] = build_exclude_list(example, exclusions)
     with codecs.open(config_path, 'w', encoding='utf-8') as fp:
-        simplejson.dump(example, fp)
+        simplejson.dump(example, fp, indent=4, default=serialize_json)
 
 
 def load_from_config(config_path, cases=None):
