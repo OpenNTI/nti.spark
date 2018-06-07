@@ -101,6 +101,8 @@ class TestSpark(SparkLayerTest):
         hive_table.update(result_frame, 100)
         assert_that(hive_table.rows.collect(), has_length(2))
         assert_that(hive_table, has_property('timestamp', is_(100)))
+        assert_that(hive_table, 
+                    has_property("__name__", is_(self.table_name)))
 
     def check_historic_table(self, spark):
         historic_list = [(118465,), (118300,)]

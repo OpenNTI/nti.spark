@@ -29,6 +29,9 @@ from pyspark.sql.types import TimestampType
 from zope import component
 from zope import interface
 
+from nti.spark import EXAMPLE
+from nti.spark import NULLABILITY
+
 from nti.schema.field import Int
 from nti.schema.field import Bool
 from nti.schema.field import Date
@@ -41,9 +44,6 @@ from nti.schema.field import ValidBytes
 from nti.schema.field import TextLine
 from nti.schema.field import IndexedIterable
 from nti.schema.field import DecodingValidTextLine as ValidTextLine
-
-from nti.spark import EXAMPLE
-from nti.spark import NULLABILITY
 
 from nti.spark.interfaces import IHiveSparkInstance
 
@@ -201,13 +201,20 @@ class TestSchema(SparkLayerTest):
         example = construct_schema_example(self.test_file, spark)
         exclude_list = build_exclude_list(example, "COL*")
         assert_that(exclude_list, has_length(4))
+        exclude_list = build_exclude_list(example, "*COL1")
+        assert_that(exclude_list, has_length(1))
+        exclude_list = build_exclude_list(example, "COL*1")
+        assert_that(exclude_list, has_length(1))
+        # coverage
+        with self.assertRaises(ValueError):
+            build_exclude_list(example, "COL")
 
     def test_save_load_config(self):
         spark = component.getUtility(IHiveSparkInstance).hive
         tmpdir = tempfile.mkdtemp()
         path = os.path.join(tmpdir, 'test.json')
         try:
-            save_to_config(self.test_file, spark, path)
+            save_to_config(self.test_file, spark, path, "COL*")
             assert_that(os.path.exists(path), True)
             schema = load_from_config(path, cases={"COL4": TimestampType()})
             assert_that(schema.fields[-1].dataType, TimestampType())
