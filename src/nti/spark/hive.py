@@ -19,7 +19,6 @@ from nti.spark.interfaces import IHiveTimeIndexed
 from nti.spark.interfaces import IHiveSparkInstance
 from nti.spark.interfaces import IHiveTimeIndexedHistoric
 
-from nti.spark.utils import csv_mode
 from nti.spark.utils import get_timestamp
 
 #: pyspark.sql.functions.lit
