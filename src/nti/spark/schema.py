@@ -232,6 +232,7 @@ def read_file_with_config(filename, config_path, spark,
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=schema)
+    from pdb import set_trace; set_trace()
     if exclusions:
         data_frame = data_frame.drop(*exclusions)
     if clean:   # pragma: no cover
