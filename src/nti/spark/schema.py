@@ -49,6 +49,7 @@ from nti.spark import EXCLUSIONS
 from nti.spark import NULLABILITY
 
 from nti.spark.utils import csv_mode
+from nti.spark.utils import safe_header
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -109,16 +110,18 @@ def construct_schema_example(filename, spark):
     """
     result = {}
     df = spark.read.csv(filename, header=True, inferSchema=True)
-    result[EXAMPLE] = {c: None for c in df.columns}
-    result[NULLABILITY] = {c: False for c in df.columns}
-    result[ORDER] = df.columns
+    safe_columns = [safe_header(c) for c in df.columns]
+    result[EXAMPLE] = {c: None for c in safe_columns}
+    result[NULLABILITY] = {c: False for c in safe_columns}
+    result[ORDER] = safe_columns
     for row in df.toLocalIterator():
         for c in df.columns:
+            safe = safe_header(c)
             val = getattr(row, c)
             if val is None:
-                result[NULLABILITY][c] = True
-            if not result[EXAMPLE][c]:
-                result[EXAMPLE][c] = val
+                result[NULLABILITY][safe] = True
+            if not result[EXAMPLE][safe]:
+                result[EXAMPLE][safe] = val
     return result
 
 

@@ -73,6 +73,6 @@ def safe_header(header):
         header = re.sub(r'&', '_', header)
         try:
             header = text_(header)
-        except UnicodeDecodeError: # pragma: no cover
+        except UnicodeDecodeError:   # pragma: no cover
             header = header.decode('utf-8')
     return header
