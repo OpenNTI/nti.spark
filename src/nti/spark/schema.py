@@ -111,16 +111,16 @@ def construct_schema_example(filename, spark):
     result = {}
     df = spark.read.csv(filename, header=True, inferSchema=True)
     safe_columns = [safe_header(c) for c in df.columns]
+    result[ORDER] = safe_columns
     result[EXAMPLE] = {c: None for c in safe_columns}
     result[NULLABILITY] = {c: False for c in safe_columns}
-    result[ORDER] = safe_columns
     for row in df.toLocalIterator():
         for c in df.columns:
             safe = safe_header(c)
             val = getattr(row, c)
             if val is None:
                 result[NULLABILITY][safe] = True
-            if not result[EXAMPLE][safe]:
+            if not result[EXAMPLE][safe] or result[EXAMPLE][safe] == 0:
                 result[EXAMPLE][safe] = val
     return result
 

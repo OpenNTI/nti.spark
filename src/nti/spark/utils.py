@@ -18,7 +18,7 @@ import isodate
 
 import pytz
 
-from nti.base._compat import text_
+import six
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -62,17 +62,27 @@ def get_timestamp(timestamp=None):
     return int(timestamp)
 
 
+def text_(s, encoding='utf-8', err='strict'):
+    """
+    Return a string and unicode version of an object. 
+    If the object is an byte sequence it's decoded first
+
+    :param object s: The object to get an unicode representation of.
+    :param str encoding: The encoding to be used if ``s`` is a byte sequence
+    :param str err: The err handling scheme to be used if ``s`` is a byte sequence
+    """
+    s = s.decode(encoding, err) if isinstance(s, bytes) else s
+    return six.text_type(s) if s is not None else None
+
+
 def safe_header(header):
     if header:
         # pylint: disable=broad-except
         try:
             header = header.encode('ascii', 'xmlcharrefreplace')
-        except:  # pragma: no cover
+        except Exception:  # pragma: no cover
             pass
         header = re.sub(r'[/<>:;"\\|#?*\s]+', '_', text_(header))
         header = re.sub(r'&', '_', header)
-        try:
-            header = text_(header)
-        except UnicodeDecodeError:   # pragma: no cover
-            header = header.decode('utf-8')
+        header = text_(header)
     return header
