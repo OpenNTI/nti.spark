@@ -47,6 +47,8 @@ from nti.spark import EXAMPLE
 from nti.spark import EXCLUSIONS
 from nti.spark import NULLABILITY
 
+from nti.spark.utils import csv_mode
+
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -153,22 +155,25 @@ def build_exclude_list(example, exclusions):
     values = example[EXAMPLE]
     exclusions = exclusions.split(',')
     for item in exclusions:
-        star_pow = item.index('*')
-        if star_pow == 0:
-            search = item[1:]
-            cols = [x for x in values if x.endswith(search)]
-            result.extend(cols)
-        elif star_pow == len(item) - 1:
-            search = item[:-1]
-            cols = [x for x in values if x.startswith(search)]
-            result.extend(cols)
-        elif star_pow:
-            search_begin = item[:star_pow]
-            search_end = item[star_pow + 1:]
-            cols = [
-                x for x in values if x.startswith(search_begin) and x.endswith(search_end)
-            ]
-            result.extend(cols)
+        try:
+            star_pow = item.index('*')
+            if star_pow == 0:
+                search = item[1:]
+                cols = [x for x in values if x.endswith(search)]
+                result.extend(cols)
+            elif star_pow == len(item) - 1:
+                search = item[:-1]
+                cols = [x for x in values if x.startswith(search)]
+                result.extend(cols)
+            elif star_pow:
+                search_begin = item[:star_pow]
+                search_end = item[star_pow + 1:]
+                cols = [
+                    x for x in values if x.startswith(search_begin) and x.endswith(search_end)
+                ]
+                result.extend(cols)
+        except ValueError:
+            result.append(item)
     return result
 
 
@@ -211,4 +216,24 @@ def load_from_config(config_path, cases=None):
         config_schema.fields = unchanged_fields
         for key, value in cases.items():
             config_schema.fields.append(StructField(key, value, nullability[key]))
-    return config_schema
+    exclusions = example[EXCLUSIONS] if EXCLUSIONS in example.keys() else None
+    return config_schema, exclusions
+
+
+def read_file_with_config(filename, config_path, spark, 
+                          cases=None, strict=False,
+                          clean=None):
+    """
+    Read a CSV file with schema saved to a JSON config
+    """
+
+    schema, exclusions = load_from_config(config_path, cases)
+    hive = getattr(spark, 'hive', spark)
+    data_frame = hive.read.csv(filename, header=True,
+                               mode=csv_mode(strict),
+                               schema=schema)
+    if exclusions:
+        data_frame = data_frame.drop(*exclusions)
+    if clean:   # pragma: no cover
+        data_frame = clean(data_frame)
+    return data_frame
