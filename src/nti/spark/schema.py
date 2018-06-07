@@ -130,12 +130,11 @@ def infer_schema(example, nullability=None):
                                        nullability[key] if nullability else True)
                            for key, value in example.items()])
     elif isinstance(example, list):
-        if not example:
-            raise ValueError("Cannot convert empty list.")
+        assert example, "Cannot convert empty list."
         type_ = infer_schema(example[0], nullability)
         for item in example:
-            if infer_schema(item, nullability) != type_:
-                raise ValueError("Cannot handle multi-type arrays.")
+            infered = infer_schema(item, nullability)
+            assert infered == type_, "Cannot handle multi-type arrays."
         return ArrayType(type_)
     else:
         if example is None:
@@ -156,11 +155,11 @@ def build_exclude_list(example, exclusions):
             star_pow = item.index('*')
             if star_pow == 0:
                 search = item[1:]
-                cols = [x for x in values.keys() if x.endswith(search)]
+                cols = [x for x in values if x.endswith(search)]
                 result.extend(cols)
             elif star_pow == len(item) - 1:
                 search = item[:-1]
-                cols = [x for x in values.keys() if x.startswith(search)]
+                cols = [x for x in values if x.startswith(search)]
                 result.extend(cols)
             else:
                 search_begin = item[:star_pow]
@@ -169,7 +168,7 @@ def build_exclude_list(example, exclusions):
                     x for x in values if x.startswith(search_begin) and x.endswith(search_end)
                 ]
                 result.extend(cols)
-        except ValueError:
+        except ValueError:  # pragma: no cover
             result.append(item)
     return result
 
