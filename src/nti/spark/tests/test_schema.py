@@ -20,6 +20,8 @@ import os
 import shutil
 import tempfile
 
+from datetime import datetime
+
 from pyspark.sql.types import LongType
 from pyspark.sql.types import ArrayType
 from pyspark.sql.types import StringType
@@ -180,7 +182,8 @@ class TestSchema(SparkLayerTest):
         assert_that(schema.fields, has_length(4))
 
         # Test nested dictionaries
-        example[EXAMPLE]["COL5"] = {"COL6": 6, "COL7": 'SomeString'}
+        # Use a datetime to check serializable method
+        example[EXAMPLE]["COL5"] = {"COL6": datetime(2018, 5, 1), "COL7": 'SomeString'}
         example[NULLABILITY]["COL5"] = False
         example[NULLABILITY]["COL6"] = False
         example[NULLABILITY]["COL7"] = False
