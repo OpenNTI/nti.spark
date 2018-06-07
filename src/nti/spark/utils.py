@@ -82,7 +82,7 @@ def safe_header(header):
             header = header.encode('ascii', 'xmlcharrefreplace')
         except Exception:  # pragma: no cover
             pass
-        header = re.sub(r'[/<>:;"\\|#?*\s]+', '_', text_(header))
+        header = re.sub(r'[/<>:;"\\|#?*\-\s]+', '_', text_(header))
         header = re.sub(r'&', '_', header)
         header = text_(header)
     return header

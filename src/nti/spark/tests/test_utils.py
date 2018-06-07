@@ -53,7 +53,9 @@ class TestUtils(SparkLayerTest):
         assert_that(get_timestamp(datetime.today()), is_(int))
 
     def test_safe_header(self):
-        has_spaces = "Presidents Associates Honored"
         has_slash = "OU/TX Weekend"
-        assert_that(safe_header(has_spaces), "Presidents_Associates_Honored")
+        has_spaces = "Presidents Associates Honored"
+        has_dash = "Presidents_Associates_Young_31-39_Years_Old"
         assert_that(safe_header(has_slash), "OU_TX_Weekend")
+        assert_that(safe_header(has_spaces), "Presidents_Associates_Honored")
+        assert_that(safe_header(has_dash), "Presidents_Associates_Young_31_39_Years_Old")
