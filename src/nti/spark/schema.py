@@ -191,7 +191,6 @@ def load_from_config(config_path, cases=None):
     assert cases is None or isinstance(cases, Mapping)
     with codecs.open(config_path, 'r', encoding='utf-8') as fp:
         example = simplejson.load(fp)
-    fp.close()
     config_schema = infer_schema(example[EXAMPLE], example[NULLABILITY])
     if cases:
         nullability = example[NULLABILITY]
