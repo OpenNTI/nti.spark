@@ -43,6 +43,7 @@ from zope.schema.interfaces import ISequence
 from zope.schema.interfaces import ITextLine
 from zope.schema.interfaces import IBytesLine
 
+from nti.spark import ORDER
 from nti.spark import EXAMPLE
 from nti.spark import EXCLUSIONS
 from nti.spark import NULLABILITY
@@ -110,6 +111,7 @@ def construct_schema_example(filename, spark):
     df = spark.read.csv(filename, header=True, inferSchema=True)
     result[EXAMPLE] = {c: None for c in df.columns}
     result[NULLABILITY] = {c: False for c in df.columns}
+    result[ORDER] = df.columns
     for row in df.toLocalIterator():
         for c in df.columns:
             val = getattr(row, c)
@@ -216,6 +218,10 @@ def load_from_config(config_path, cases=None):
         config_schema.fields = unchanged_fields
         for key, value in cases.items():
             config_schema.fields.append(StructField(key, value, nullability[key]))
+    # Order of the items in the schema is important
+    order_dict = {field.name: field for field in config_schema.fields}
+    ordered_fields = [order_dict[key] for key in example[ORDER]]
+    config_schema.fields = ordered_fields
     exclusions = example[EXCLUSIONS] if EXCLUSIONS in example.keys() else None
     return config_schema, exclusions
 
@@ -232,7 +238,6 @@ def read_file_with_config(filename, config_path, spark,
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=schema)
-    from pdb import set_trace; set_trace()
     if exclusions:
         data_frame = data_frame.drop(*exclusions)
     if clean:   # pragma: no cover

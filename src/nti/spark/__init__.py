@@ -43,3 +43,6 @@ NULLABILITY = "nullability"
 
 #: Exlusion JSON entry
 EXCLUSIONS = "exclusions"
+
+#: Order JSON entrh
+ORDER = "order"
