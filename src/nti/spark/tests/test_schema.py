@@ -170,12 +170,12 @@ class TestSchema(SparkLayerTest):
         result_dict = construct_schema_example(self.test_file, spark)
         assert_that(result_dict[EXAMPLE], has_entries('COL1', True,
                                                       'COL2', 'Austin',
-                                                      'COL3', 468,
-                                                      'COL4', None))
+                                                      'COL_3', 468,
+                                                      'COL_4', None))
         assert_that(result_dict[NULLABILITY], has_entries('COL1', True,
                                                           'COL2', True,
-                                                          'COL3', True,
-                                                          'COL4', True))
+                                                          'COL_3', True,
+                                                          'COL_4', True))
 
     def test_infer_schema(self):
         spark = component.getUtility(IHiveSparkInstance).hive
@@ -220,7 +220,7 @@ class TestSchema(SparkLayerTest):
         try:
             save_to_config(self.test_file, spark, path, "COL*")
             assert_that(os.path.exists(path), True)
-            schema, _ = load_from_config(path, cases={"COL4": TimestampType()})
+            schema, _ = load_from_config(path, cases={"COL_4": TimestampType()})
             assert_that(schema.fields[-1].dataType, TimestampType())
         finally:
             shutil.rmtree(tmpdir)

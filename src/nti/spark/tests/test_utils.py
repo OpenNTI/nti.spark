@@ -19,6 +19,7 @@ from datetime import datetime
 
 from nti.spark.utils import csv_mode
 from nti.spark.utils import parse_date
+from nti.spark.utils import safe_header
 from nti.spark.utils import get_timestamp
 from nti.spark.utils import parse_date_as_utc
 
@@ -50,3 +51,9 @@ class TestUtils(SparkLayerTest):
         assert_that(get_timestamp(None), is_(int))
         assert_that(get_timestamp(date.today()), is_(int))
         assert_that(get_timestamp(datetime.today()), is_(int))
+
+    def test_safe_header(self):
+        has_spaces = "Presidents Associates Honored"
+        has_slash = "OU/TX Weekend"
+        assert_that(safe_header(has_spaces), "Presidents_Associates_Honored")
+        assert_that(safe_header(has_slash), "OU_TX_Weekend")

@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import re
 import time
 import numbers
 from datetime import date
@@ -16,6 +17,8 @@ from datetime import datetime
 import isodate
 
 import pytz
+
+from nti.base._compat import text_
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -57,3 +60,19 @@ def get_timestamp(timestamp=None):
     if isinstance(timestamp, (date, datetime)):
         timestamp = time.mktime(timestamp.timetuple())
     return int(timestamp)
+
+
+def safe_header(header):
+    if header:
+        # pylint: disable=broad-except
+        try:
+            header = header.encode('ascii', 'xmlcharrefreplace')
+        except:  # pragma: no cover
+            pass
+        header = re.sub(r'[/<>:;"\\|#?*\s]+', '_', text_(header))
+        header = re.sub(r'&', '_', header)
+        try:
+            header = text_(header)
+        except UnicodeDecodeError:   # pragma: no cover
+            header = header.decode('utf-8')
+    return header
