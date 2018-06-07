@@ -151,25 +151,22 @@ def build_exclude_list(example, exclusions):
     values = example[EXAMPLE]
     exclusions = exclusions.split(',')
     for item in exclusions:
-        try:
-            star_pow = item.index('*')
-            if star_pow == 0:
-                search = item[1:]
-                cols = [x for x in values if x.endswith(search)]
-                result.extend(cols)
-            elif star_pow == len(item) - 1:
-                search = item[:-1]
-                cols = [x for x in values if x.startswith(search)]
-                result.extend(cols)
-            else:
-                search_begin = item[:star_pow]
-                search_end = item[star_pow + 1:]
-                cols = [
-                    x for x in values if x.startswith(search_begin) and x.endswith(search_end)
-                ]
-                result.extend(cols)
-        except ValueError:  # pragma: no cover
-            result.append(item)
+        star_pow = item.index('*')
+        if star_pow == 0:
+            search = item[1:]
+            cols = [x for x in values if x.endswith(search)]
+            result.extend(cols)
+        elif star_pow == len(item) - 1:
+            search = item[:-1]
+            cols = [x for x in values if x.startswith(search)]
+            result.extend(cols)
+        elif star_pow:
+            search_begin = item[:star_pow]
+            search_end = item[star_pow + 1:]
+            cols = [
+                x for x in values if x.startswith(search_begin) and x.endswith(search_end)
+            ]
+            result.extend(cols)
     return result
 
 
