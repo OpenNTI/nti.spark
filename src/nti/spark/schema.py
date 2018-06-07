@@ -232,14 +232,13 @@ def read_file_with_config(filename, config_path, spark,
     """
     Read a CSV file with schema saved to a JSON config
     """
-
-    cfg_schema, exclusions = load_from_config(config_path, cases)
     hive = getattr(spark, 'hive', spark)
+    cfg_schema, exclusions = load_from_config(config_path, cases)
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=cfg_schema)
     if exclusions:
         data_frame = data_frame.drop(*exclusions)
-    if clean:   # pragma: no cover
+    if clean is not None and callable(clean):   # pragma: no cover
         data_frame = clean(data_frame)
     return data_frame
