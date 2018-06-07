@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
+from hamcrest import contains
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
@@ -54,6 +55,7 @@ from nti.spark.schema import save_to_config
 from nti.spark.schema import load_from_config
 from nti.spark.schema import to_pyspark_schema
 from nti.spark.schema import build_exclude_list
+from nti.spark.schema import read_file_with_config
 from nti.spark.schema import construct_schema_example
 
 from nti.spark.tests import SparkLayerTest
@@ -208,6 +210,8 @@ class TestSchema(SparkLayerTest):
         assert_that(exclude_list, has_length(1))
         exclude_list = build_exclude_list(example, "COL*1")
         assert_that(exclude_list, has_length(1))
+        exclude_list = build_exclude_list(example, "COL1")
+        assert_that(exclude_list, has_length(1))
 
     def test_save_load_config(self):
         spark = component.getUtility(IHiveSparkInstance).hive
@@ -216,7 +220,21 @@ class TestSchema(SparkLayerTest):
         try:
             save_to_config(self.test_file, spark, path, "COL*")
             assert_that(os.path.exists(path), True)
-            schema = load_from_config(path, cases={"COL4": TimestampType()})
+            schema, _ = load_from_config(path, cases={"COL4": TimestampType()})
             assert_that(schema.fields[-1].dataType, TimestampType())
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_read_file(self):
+        spark = component.getUtility(IHiveSparkInstance).hive
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, 'test.json')
+        try:
+            save_to_config(self.test_file, spark, path, "COL1")
+            assert_that(os.path.exists(path), True)
+            data_frame = read_file_with_config(self.test_file, path, spark)
+            assert_that(data_frame.columns, has_length(3))
+            assert_that(data_frame.columns, is_not(contains("COL1")))
+            assert_that(data_frame.count(), is_(3))
         finally:
             shutil.rmtree(tmpdir)
