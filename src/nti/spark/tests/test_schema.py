@@ -248,4 +248,3 @@ class TestSchema(SparkLayerTest):
             assert_that(data_frame.columns, contains('COL2', 'COL_3', 'COL_4', 'COL1'))
         finally:
             shutil.rmtree(tmpdir)
-
