@@ -164,6 +164,12 @@ class TestSchema(SparkLayerTest):
         path = os.path.join(os.path.dirname(__file__),
                             "data", "test_file.csv")
         return path
+    
+    @property
+    def ordered_test_file(self):
+        path = os.path.join(os.path.dirname(__file__),
+                            "data", "test_file_ordered.csv")
+        return path
 
     def test_construct(self):
         spark = component.getUtility(IHiveSparkInstance).hive
@@ -226,7 +232,7 @@ class TestSchema(SparkLayerTest):
             shutil.rmtree(tmpdir)
 
     def test_read_file(self):
-        spark = component.getUtility(IHiveSparkInstance).hive
+        spark = component.getUtility(IHiveSparkInstance)
         tmpdir = tempfile.mkdtemp()
         path = os.path.join(tmpdir, 'test.json')
         try:
@@ -236,5 +242,10 @@ class TestSchema(SparkLayerTest):
             assert_that(data_frame.columns, has_length(3))
             assert_that(data_frame.columns, is_not(contains("COL1")))
             assert_that(data_frame.count(), is_(3))
+            # Test re-ordering based on file
+            save_to_config(self.test_file, spark, path)
+            data_frame = read_file_with_config(self.ordered_test_file, path, spark, adhere=True)
+            assert_that(data_frame.columns, contains('COL2', 'COL_3', 'COL_4', 'COL1'))
         finally:
             shutil.rmtree(tmpdir)
+

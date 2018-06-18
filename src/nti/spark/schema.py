@@ -109,6 +109,7 @@ def construct_schema_example(filename, spark):
     columns for a given file
     """
     result = {}
+    spark = getattr(spark, 'hive', spark)
     df = spark.read.csv(filename, header=True, inferSchema=True)
     safe_columns = [safe_header(c) for c in df.columns]
     result[ORDER] = safe_columns
@@ -229,14 +230,37 @@ def load_from_config(config_path, cases=None):
     return config_schema, exclusions
 
 
+def adhere_to_file(schema, filename, spark):
+    spark = getattr(spark, 'spark', spark)
+    file_headers = spark.textFile(filename)
+    # Check for empty file
+    assert not file_headers.isEmpty(), "Cannot read empty file."
+    # Get the first line
+    file_headers = file_headers.take(1).pop().split(',')
+    file_headers = [safe_header(h) for h in file_headers]
+    schema_headers = [f.name for f in schema.fields]
+    # Both header lists should look the same independent of order
+    matching_headers = all([h in schema_headers for h in file_headers])
+    matching_lengths = len(file_headers) == len(schema_headers)
+    # Fail hard if missing column
+    assert matching_headers and matching_lengths, "File missing required columns."
+    # Reorder the schema fields to match the file
+    order_dict = {field.name: field for field in schema.fields}
+    ordered_fields = [order_dict[key] for key in file_headers]
+    schema.fields = ordered_fields
+    return schema
+
+
 def read_file_with_config(filename, config_path, spark, 
                           cases=None, strict=False,
-                          clean=None):
+                          clean=None, adhere=False):
     """
     Read a CSV file with schema saved to a JSON config
     """
     hive = getattr(spark, 'hive', spark)
     cfg_schema, exclusions = load_from_config(config_path, cases)
+    if adhere:
+        cfg_schema = adhere_to_file(cfg_schema, filename, spark)
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=cfg_schema)
