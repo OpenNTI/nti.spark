@@ -8,17 +8,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-import six
 import collections
 
-from pyspark import SparkContext
-
-from pyspark.conf import SparkConf
-
-from pyspark.sql import HiveContext
 from pyspark.sql import SparkSession
 
 from pyspark.sql.types import StructType
+
+import six
 
 from zope import interface
 
