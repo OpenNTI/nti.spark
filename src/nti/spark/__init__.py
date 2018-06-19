@@ -9,7 +9,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 #: Default log level
-DEFAULT_LOG_LEVEL = u'ALL'
+DEFAULT_LOG_LEVEL = u'ERROR'
 
 #: Default user data location
 DEFAULT_LOCATION = u'/user/hive/warehouse'
