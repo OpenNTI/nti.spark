@@ -117,7 +117,7 @@ class HiveTable(object):
         # insert new data
         spark.insert_into(self.table_name, new_frame,
                           overwrite=overwrite)
-        spark.hive.dropTempTable('new_frame')
+        spark.hive.catalog.dropTempView('new_frame')
 
     def update(self, new_frame, overwrite=True):
         assert IDataFrame.providedBy(new_frame), "Invalid DataFrame"
