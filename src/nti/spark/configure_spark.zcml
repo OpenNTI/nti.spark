@@ -21,9 +21,5 @@
 	<class class="pyspark.sql.SparkSession">
     	<implements interface=".interfaces.ISparkSession" />
 	</class>
-
-	<class class="pyspark.sql.HiveContext">
-    	<implements interface=".interfaces.IHiveContext" />
-	</class>
 	
 </configure>

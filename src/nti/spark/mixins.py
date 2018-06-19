@@ -63,7 +63,7 @@ class ABSArchivableHiveTimeIndexed(HiveTimeIndexed):
             insert_into_table(temp_name, self.table_name, overwrite, spark)
         finally:
             # clean up
-            spark.hive.dropTempTable(temp_name)
+            spark.hive.catalog.dropTempView(temp_name)
 
     def update(self, new_data, timestamp=None, archive=True, reset=False, overwrite=True):  # pylint: disable=arguments-differ
         if archive:
@@ -108,4 +108,4 @@ class ABSArchivableHiveTimeIndexedHistorical(HiveTimeIndexedHistoric):
             write_to_historical(temp_name, self.table_name, timestamp, spark)
         finally:
             # clean up
-            spark.hive.dropTempTable(temp_name)
+            spark.hive.catalog.dropTempView(temp_name)

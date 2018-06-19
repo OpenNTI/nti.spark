@@ -92,27 +92,19 @@ class SparkInstance(SchemaConfigured):
 
     # pylint: disable=super-init-not-called
     def __init__(self, master, app_name, log_level=DEFAULT_LOG_LEVEL):
-        self.master = master
-        self.app_name = app_name
         self.log_level = DEFAULT_LOG_LEVEL if not log_level else log_level
-
-    @Lazy
-    def conf(self):
-        conf = SparkConf()
-        conf.setMaster(self.master)
-        conf.setAppName(self.app_name)
-        return conf
+        self.builder = SparkSession.builder.appName(app_name).master(master)
 
     @Lazy
     def spark(self):
-        result = SparkContext.getOrCreate(self.conf)
-        result.setLogLevel(self.log_level)  # pylint: disable=no-member
-        return result
+        result = self.builder.getOrCreate()
+        result.sparkContext.setLogLevel(self.log_level)  # pylint: disable=no-member
+        return result.sparkContext
     context = spark
 
     @Lazy
     def session(self):
-        return SparkSession(self.spark)
+        return self.builder.getOrCreate()
 
     def close(self):
         # pylint: disable=no-member
@@ -130,6 +122,7 @@ class HiveSparkInstance(SparkInstance):
     def __init__(self, master, app_name, location=None, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
         self.location = location
+        self.builder = self.builder.config("spark.sql.catalogImplementation", "hive").enableHiveSupport()
 
     def _empty_dataframe(self):
         # pylint: disable=no-member
@@ -137,15 +130,10 @@ class HiveSparkInstance(SparkInstance):
         return self.hive.createDataFrame(self.spark.emptyRDD(), schema)
 
     @Lazy
-    def conf(self):
-        result = super(HiveSparkInstance, self).conf
-        # pylint: disable=no-member
-        result.set("spark.sql.catalogImplementation", "hive")
-        return result
-
-    @Lazy
     def hive(self):
-        return HiveContext(self.spark)
+        # Spark 2.0 no longer supports HiveContext, only hive support
+        # through SparkSession
+        return self.session
 
     def database_exists(self, name):
         # pylint: disable=no-member

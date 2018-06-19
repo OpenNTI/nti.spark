@@ -41,7 +41,6 @@ from nti.spark.hive import overwrite_table
 from nti.spark.hive import write_to_historical
 
 from nti.spark.interfaces import IDataFrame
-from nti.spark.interfaces import IHiveContext
 from nti.spark.interfaces import ISparkContext
 from nti.spark.interfaces import ISparkSession
 from nti.spark.interfaces import IHiveTimeIndexed
@@ -189,8 +188,8 @@ class TestSpark(SparkLayerTest):
         assert_that(spark.session, validly_provides(ISparkSession))
         assert_that(spark.session, verifiably_provides(ISparkSession))
         # hive
-        assert_that(spark.hive, validly_provides(IHiveContext))
-        assert_that(spark.hive, verifiably_provides(IHiveContext))
+        assert_that(spark.hive, validly_provides(ISparkSession))
+        assert_that(spark.hive, verifiably_provides(ISparkSession))
 
         # 2. create a database
         spark.create_database("orgsync", "home")

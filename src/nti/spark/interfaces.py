@@ -46,14 +46,6 @@ class ISparkSession(interface.Interface):
     """
 
 
-class IHiveContext(interface.Interface):
-    """
-    A Spark Session linked to an instance
-    of a Spark Context for converting
-    RDDs to DataFrames
-    """
-
-
 class ISparkInstance(interface.Interface):
     """
     An object encapsulating both a Spark Context
@@ -76,8 +68,8 @@ class IHiveSparkInstance(ISparkInstance):
     """
     An object encapsulating both a Hive Context
     """
-    hive = Object(IHiveContext,
-                  title=u"Hive Context")
+    hive = Object(ISparkSession,
+                  title=u"Spark Session Hive Mirror")
 
     def database_exists(name):
         """
