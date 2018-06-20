@@ -257,8 +257,8 @@ def exclude(frame, config_path, spark):
     # Check that the frame follows the given schema
     try:
         frame = spark.createDataFrame(frame.rdd, cfg_schema)
-        frame.collect()
-    except:
+        frame.sample(False, 0.1).collect()
+    except Exception:
         raise TypeError("Frame does not conform to given schema.")
     if exclusions:
         frame = frame.drop(*exclusions)
