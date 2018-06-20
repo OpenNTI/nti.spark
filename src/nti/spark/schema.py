@@ -251,9 +251,19 @@ def adhere_to_file(schema, filename, spark):
     return schema
 
 
+def exclude(frame, config_path, spark):
+    cfg_schema, exclusions = load_from_config(config_path)
+    # Check that the frame follows the given schema
+    frame = spark.createDataFrame(frame.rdd, cfg_schema, verifySchema=True)
+    if exclusions:
+        frame = frame.drop(*exclusions)
+    return frame
+
+
 def read_file_with_config(filename, config_path, spark, 
                           cases=None, strict=False,
-                          clean=None, adhere=False):
+                          clean=None, adhere=False,
+                          exclude_later=False):
     """
     Read a CSV file with schema saved to a JSON config
     """
@@ -264,7 +274,7 @@ def read_file_with_config(filename, config_path, spark,
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=cfg_schema)
-    if exclusions:
+    if not exclude_later and exclusions:
         data_frame = data_frame.drop(*exclusions)
     if clean is not None and callable(clean):   # pragma: no cover
         data_frame = clean(data_frame)

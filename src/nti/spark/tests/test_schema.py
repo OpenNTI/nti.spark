@@ -50,6 +50,7 @@ from nti.schema.field import DecodingValidTextLine as ValidTextLine
 
 from nti.spark.interfaces import IHiveSparkInstance
 
+from nti.spark.schema import exclude
 from nti.spark.schema import infer_schema
 from nti.spark.schema import save_to_config
 from nti.spark.schema import load_from_config
@@ -246,5 +247,22 @@ class TestSchema(SparkLayerTest):
             save_to_config(self.test_file, spark, path)
             data_frame = read_file_with_config(self.ordered_test_file, path, spark, adhere=True)
             assert_that(data_frame.columns, contains('COL2', 'COL_3', 'COL_4', 'COL1'))
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_later_exclusion(self):
+        spark = component.getUtility(IHiveSparkInstance)
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, 'test.json')
+        try:
+            save_to_config(self.test_file, spark, path, "COL1")
+            assert_that(os.path.exists(path), True)
+            data_frame = read_file_with_config(self.test_file, path, spark.
+                                               exclude_later=True)
+            assert_that(data_frame.columns, has_length(4))
+            assert_that(data_frame.columns, contains("COL1"))
+            data_frame = exclude(data_frame, self.test_file, spark)
+            assert_that(data_frame.columns, has_length(3))
+            assert_that(data_frame.columns, is_not(contains("COL1")))
         finally:
             shutil.rmtree(tmpdir)
