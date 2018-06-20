@@ -238,7 +238,7 @@ def adhere_to_file(cfg_schema, filename, spark):
     # Get the first line
     file_headers = file_headers.take(1).pop().split(',')
     file_headers = [safe_header(h) for h in file_headers]
-    schema_headers = [f.name for f in cfg_schema.fields]
+    schema_headers = set(f.name for f in cfg_schema.fields)
     # Both header lists should look the same independent of order
     matching_headers = all([h in schema_headers for h in file_headers])
     matching_lengths = len(file_headers) == len(schema_headers)
@@ -251,13 +251,13 @@ def adhere_to_file(cfg_schema, filename, spark):
     return cfg_schema
 
 
-def exclude(frame, config_path, spark):
+def exclude(frame, config_path, spark, fraction=0.1):
     spark = getattr(spark, 'session', spark)
     cfg_schema, exclusions = load_from_config(config_path)
     # Check that the frame follows the given schema
     try:
         frame = spark.createDataFrame(frame.rdd, cfg_schema)
-        frame.sample(False, 0.1).collect()
+        frame.sample(False, fraction).collect()
     except Exception:
         raise TypeError("Frame does not conform to given schema.")
     if exclusions:
