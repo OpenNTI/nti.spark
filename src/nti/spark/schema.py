@@ -231,7 +231,7 @@ def load_from_config(config_path, cases=None):
 
 
 def adhere_to_file(schema, filename, spark):
-    spark = getattr(spark, 'spark', spark)
+    spark = getattr(spark, 'sparkContext', spark)
     file_headers = spark.textFile(filename)
     # Check for empty file
     assert not file_headers.isEmpty(), "Cannot read empty file."
@@ -260,7 +260,7 @@ def read_file_with_config(filename, config_path, spark,
     hive = getattr(spark, 'hive', spark)
     cfg_schema, exclusions = load_from_config(config_path, cases)
     if adhere:
-        cfg_schema = adhere_to_file(cfg_schema, filename, spark)
+        cfg_schema = adhere_to_file(cfg_schema, filename, hive)
     data_frame = hive.read.csv(filename, header=True,
                                mode=csv_mode(strict),
                                schema=cfg_schema)
