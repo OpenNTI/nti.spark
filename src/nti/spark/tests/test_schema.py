@@ -10,7 +10,10 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
+from hamcrest import raises
+from hamcrest import calling
 from hamcrest import contains
+from hamcrest import has_item
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
@@ -172,6 +175,12 @@ class TestSchema(SparkLayerTest):
                             "data", "test_file_ordered.csv")
         return path
 
+    @property
+    def bad_test_file(self):
+        path = os.path.join(os.path.dirname(__file__),
+                            "data", "bad_format.csv")
+        return path
+
     def test_construct(self):
         spark = component.getUtility(IHiveSparkInstance).hive
         result_dict = construct_schema_example(self.test_file, spark)
@@ -241,7 +250,7 @@ class TestSchema(SparkLayerTest):
             assert_that(os.path.exists(path), True)
             data_frame = read_file_with_config(self.test_file, path, spark)
             assert_that(data_frame.columns, has_length(3))
-            assert_that(data_frame.columns, is_not(contains("COL1")))
+            assert_that(data_frame.columns, is_not(has_item("COL1")))
             assert_that(data_frame.count(), is_(3))
             # Test re-ordering based on file
             save_to_config(self.test_file, spark, path)
@@ -257,12 +266,16 @@ class TestSchema(SparkLayerTest):
         try:
             save_to_config(self.test_file, spark, path, "COL1")
             assert_that(os.path.exists(path), True)
-            data_frame = read_file_with_config(self.test_file, path, spark.
+            data_frame = read_file_with_config(self.test_file, path, spark,
                                                exclude_later=True)
             assert_that(data_frame.columns, has_length(4))
-            assert_that(data_frame.columns, contains("COL1"))
-            data_frame = exclude(data_frame, self.test_file, spark)
+            assert_that(data_frame.columns, has_item("COL1"))
+            data_frame = exclude(data_frame, path, spark)
             assert_that(data_frame.columns, has_length(3))
-            assert_that(data_frame.columns, is_not(contains("COL1")))
+            assert_that(data_frame.columns, is_not(has_item("COL1")))
+            # Check bad formatting error
+            data_frame = spark.hive.read.csv(self.bad_test_file, header=True)
+            assert_that(calling(exclude).with_args(data_frame, path, spark),
+                        raises(TypeError))
         finally:
             shutil.rmtree(tmpdir)

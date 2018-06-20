@@ -252,9 +252,14 @@ def adhere_to_file(schema, filename, spark):
 
 
 def exclude(frame, config_path, spark):
+    spark = getattr(spark, 'session', spark)
     cfg_schema, exclusions = load_from_config(config_path)
     # Check that the frame follows the given schema
-    frame = spark.createDataFrame(frame.rdd, cfg_schema, verifySchema=True)
+    try:
+        frame = spark.createDataFrame(frame.rdd, cfg_schema)
+        frame.collect()
+    except:
+        raise TypeError("Frame does not conform to given schema.")
     if exclusions:
         frame = frame.drop(*exclusions)
     return frame

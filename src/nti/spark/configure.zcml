@@ -18,8 +18,4 @@
 		<spark:registerHiveSparkInstance app_name="Spark APP"
 										 location="spark-warehouse" />
 	</configure>
-	<configure zcml:condition="not-have testmode">
-		<spark:registerHiveSparkInstance app_name="Spark APP"
-										 location="dtap-warehouse" />
-	</configure>
 </configure>
