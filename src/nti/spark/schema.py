@@ -230,7 +230,7 @@ def load_from_config(config_path, cases=None):
     return config_schema, exclusions
 
 
-def adhere_to_file(schema, filename, spark):
+def adhere_to_file(cfg_schema, filename, spark):
     spark = getattr(spark, 'sparkContext', spark)
     file_headers = spark.textFile(filename)
     # Check for empty file
@@ -238,17 +238,17 @@ def adhere_to_file(schema, filename, spark):
     # Get the first line
     file_headers = file_headers.take(1).pop().split(',')
     file_headers = [safe_header(h) for h in file_headers]
-    schema_headers = [f.name for f in schema.fields]
+    schema_headers = [f.name for f in cfg_schema.fields]
     # Both header lists should look the same independent of order
     matching_headers = all([h in schema_headers for h in file_headers])
     matching_lengths = len(file_headers) == len(schema_headers)
     # Fail hard if missing column
     assert matching_headers and matching_lengths, "File missing required columns."
     # Reorder the schema fields to match the file
-    order_dict = {field.name: field for field in schema.fields}
+    order_dict = {field.name: field for field in cfg_schema.fields}
     ordered_fields = [order_dict[key] for key in file_headers]
-    schema.fields = ordered_fields
-    return schema
+    cfg_schema.fields = ordered_fields
+    return cfg_schema
 
 
 def exclude(frame, config_path, spark):
