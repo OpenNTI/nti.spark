@@ -257,9 +257,10 @@ def adhere_to_file(cfg_schema, filename, spark):
     return cfg_schema
 
 
-def exclude(frame, config_path, spark, fraction=0.1, adhere=False):
+def exclude(frame, config_path, spark, fraction=0.1, 
+                                adhere=False, cases=None):
     spark = getattr(spark, 'session', spark)
-    cfg_schema, exclusions = load_from_config(config_path)
+    cfg_schema, exclusions = load_from_config(config_path, cases)
     # Re-order if necessary
     if adhere:
         schema_headers = set(f.name for f in cfg_schema.fields)
