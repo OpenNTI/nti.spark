@@ -270,11 +270,12 @@ class TestSchema(SparkLayerTest):
                                                exclude_later=True)
             assert_that(data_frame.columns, has_length(4))
             assert_that(data_frame.columns, has_item("COL1"))
-            data_frame = exclude(data_frame, path, spark)
+            data_frame = exclude(data_frame, path, spark, adhere=True)
             assert_that(data_frame.columns, has_length(3))
             assert_that(data_frame.columns, is_not(has_item("COL1")))
             # Check bad formatting error
-            data_frame = spark.hive.read.csv(self.bad_test_file, header=True)
+            data_frame = spark.hive.read.csv(self.bad_test_file, header=True,
+                                             inferSchema=True)
             assert_that(calling(exclude).with_args(data_frame, path, spark),
                         raises(TypeError))
         finally:

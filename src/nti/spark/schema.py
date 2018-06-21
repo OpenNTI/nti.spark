@@ -203,6 +203,14 @@ def save_to_config(filename, spark, config_path, exclusions=None):
         simplejson.dump(example, fp, indent=4, default=serialize_json)
 
 
+def order_schema(cfg_schema, file_headers):
+    # Reorder the schema fields to match the file
+    order_dict = {field.name: field for field in cfg_schema.fields}
+    ordered_fields = [order_dict[key] for key in file_headers]
+    cfg_schema.fields = ordered_fields
+    return cfg_schema
+
+
 def load_from_config(config_path, cases=None):
     """
     Load a schema from a config file
@@ -222,12 +230,16 @@ def load_from_config(config_path, cases=None):
         config_schema.fields = unchanged_fields
         for key, value in cases.items():
             config_schema.fields.append(StructField(key, value, nullability[key]))
-    # Order of the items in the schema is important
-    order_dict = {field.name: field for field in config_schema.fields}
-    ordered_fields = [order_dict[key] for key in example[ORDER]]
-    config_schema.fields = ordered_fields
+    config_schema = order_schema(config_schema, example[ORDER])
     exclusions = example[EXCLUSIONS] if EXCLUSIONS in example.keys() else None
     return config_schema, exclusions
+
+
+def check_matching_headers(schema_headers, file_headers):
+    # Both header lists should look the same independent of order
+    matching_headers = all([h in schema_headers for h in file_headers])
+    matching_lengths = len(file_headers) == len(schema_headers)
+    return matching_headers and matching_lengths
 
 
 def adhere_to_file(cfg_schema, filename, spark):
@@ -239,21 +251,20 @@ def adhere_to_file(cfg_schema, filename, spark):
     file_headers = file_headers.take(1).pop().split(',')
     file_headers = [safe_header(h) for h in file_headers]
     schema_headers = set(f.name for f in cfg_schema.fields)
-    # Both header lists should look the same independent of order
-    matching_headers = all([h in schema_headers for h in file_headers])
-    matching_lengths = len(file_headers) == len(schema_headers)
     # Fail hard if missing column
-    assert matching_headers and matching_lengths, "File missing required columns."
-    # Reorder the schema fields to match the file
-    order_dict = {field.name: field for field in cfg_schema.fields}
-    ordered_fields = [order_dict[key] for key in file_headers]
-    cfg_schema.fields = ordered_fields
+    assert check_matching_headers(schema_headers, file_headers), "File missing required columns."
+    cfg_schema = order_schema(cfg_schema, file_headers)
     return cfg_schema
 
 
-def exclude(frame, config_path, spark, fraction=0.1):
+def exclude(frame, config_path, spark, fraction=0.1, adhere=False):
     spark = getattr(spark, 'session', spark)
     cfg_schema, exclusions = load_from_config(config_path)
+    # Re-order if necessary
+    if adhere:
+        schema_headers = set(f.name for f in cfg_schema.fields)
+        assert check_matching_headers(schema_headers, frame.columns), "Mismatched headers."
+        cfg_schema = order_schema(cfg_schema, frame.columns)
     # Check that the frame follows the given schema
     try:
         frame = spark.createDataFrame(frame.rdd, cfg_schema)
