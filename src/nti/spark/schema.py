@@ -258,7 +258,7 @@ def adhere_to_file(cfg_schema, filename, spark):
 
 
 def exclude(frame, config_path, spark, fraction=0.1, 
-                                adhere=False, cases=None):
+            adhere=False, cases=None):
     spark = getattr(spark, 'session', spark)
     cfg_schema, exclusions = load_from_config(config_path, cases)
     # Re-order if necessary
