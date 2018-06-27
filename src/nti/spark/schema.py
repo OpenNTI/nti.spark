@@ -22,8 +22,8 @@ from pyspark.sql.types import StringType
 from pyspark.sql.types import StructType
 from pyspark.sql.types import BooleanType
 from pyspark.sql.types import StructField
-from pyspark.sql.types import _infer_type
 from pyspark.sql.types import TimestampType
+from pyspark.sql.types import _infer_type as infer_type
 
 import simplejson
 
@@ -146,10 +146,8 @@ def infer_schema(example, nullability=None):
             infered = infer_schema(item, nullability)
             assert infered == type_, "Cannot handle multi-type arrays."
         return ArrayType(type_)
-    else:
-        if example is None:
-            return StringType()
-        return _infer_type(example)
+    # infer type
+    return StringType() if example is None else infer_type(example)
 
 
 def build_exclude_list(example, exclusions):
