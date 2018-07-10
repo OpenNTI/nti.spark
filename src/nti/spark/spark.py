@@ -118,7 +118,7 @@ class HiveSparkInstance(SparkInstance):
     def __init__(self, master, app_name, location=None, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
         self.location = location
-        self.builder = self.builder.config("spark.sql.catalogImplementation", "hive").enableHiveSupport()
+        self.builder = self.builder.config("spark.sql.catalogImplementation", "hive").config("spark.sql.warehouse.dir", location).enableHiveSupport()
 
     def _empty_dataframe(self):
         # pylint: disable=no-member
