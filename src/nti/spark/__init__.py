@@ -46,3 +46,6 @@ EXCLUSIONS = "exclusions"
 
 #: Order JSON entry
 ORDER = "order"
+
+#: Spark warehouse
+SPARK_WAREHOUSE = "spark-warehouse"

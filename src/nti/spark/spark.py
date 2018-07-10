@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
 import collections
 
 from pyspark.sql import SparkSession
@@ -25,6 +26,7 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 from nti.schema.schema import SchemaConfigured
 
 from nti.spark import PARTITION_KEY
+from nti.spark import SPARK_WAREHOUSE
 from nti.spark import DEFAULT_LOG_LEVEL
 from nti.spark import PARITION_INFORMATION
 from nti.spark import DEFAULT_STORAGE_FORMAT
@@ -117,8 +119,13 @@ class HiveSparkInstance(SparkInstance):
 
     def __init__(self, master, app_name, location=None, log_level=DEFAULT_LOG_LEVEL):
         SparkInstance.__init__(self, master, app_name, log_level)
+        self.builder = self.builder.config("spark.sql.catalogImplementation", "hive")
+        location = SPARK_WAREHOUSE if location is None else location
+        if not os.path.isabs(location) and not location.startswith('hdfs'):
+            location = os.path.join(os.getcwd(), location)
         self.location = location
-        self.builder = self.builder.config("spark.sql.catalogImplementation", "hive").config("spark.sql.warehouse.dir", location).enableHiveSupport()
+        self.builder.config("spark.sql.warehouse.dir", location)
+        self.builder.enableHiveSupport()
 
     def _empty_dataframe(self):
         # pylint: disable=no-member
