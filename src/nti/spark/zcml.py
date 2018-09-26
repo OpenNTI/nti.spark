@@ -18,6 +18,8 @@ from zope.interface.interface import InterfaceClass
 
 from zope.component.zcml import utility
 
+from zope.configuration.fields import GlobalObject
+
 from zope.schema import Choice
 from zope.schema import TextLine
 
@@ -66,9 +68,9 @@ class IRegisterHiveSparkInstance(IRegisterSparkInstance):
     """
     Provides a schema for registering a hive spark instance
     """
-    location = fields.TextLine(title=u"Hive data location",
-                               required=False,
-                               default=None)
+    location = TextLine(title=u"Hive data location",
+                        required=False,
+                        default=None)
 
 
 def registerHiveSparkInstance(_context, master=u"local", app_name=u"HiveSpark App",
@@ -86,11 +88,11 @@ class IRegisterHiveTable(Interface):
     Interface representing a registration of a new hive table
     """
 
-    factory = fields.GlobalObject(title=u"The table to register",
-                                  required=True)
+    factory = GlobalObject(title=u"The table to register",
+                           required=True)
 
-    provides = fields.GlobalObject(title=u"The interface the factory provides",
-                                   required=True)
+    provides = GlobalObject(title=u"The interface the factory provides",
+                            required=True)
 
 
 def registerHiveTable(_context, factory, provides):
