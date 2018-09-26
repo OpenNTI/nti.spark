@@ -18,9 +18,8 @@ from zope.interface.interface import InterfaceClass
 
 from zope.component.zcml import utility
 
-from zope.configuration import fields
-
 from zope.schema import Choice
+from zope.schema import TextLine
 
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
@@ -49,13 +48,13 @@ class IRegisterSparkInstance(Interface):
     """
     Provides a schema for registering a spark Context
     """
-    master = fields.TextLine(title=u"Master URL",
-                             required=False,
-                             default=u"local")
+    master = TextLine(title=u"Master URL",
+                      required=False,
+                      default=u"local")
 
-    app_name = fields.TextLine(title=u"Spark App Name",
-                               required=False,
-                               default=u"Spark App")
+    app_name = TextLine(title=u"Spark App Name",
+                        required=False,
+                        default=u"Spark App")
 
     log_level = Choice(vocabulary=LOG_LEVELS_VOCABULARY,
                        title=u'Logging Level',
